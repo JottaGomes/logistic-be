@@ -166,7 +166,15 @@ sorting, the security layer and the error handler.
 
 ## Generating test data
 
-Two ways, and they are for different things.
+**The application now seeds 10,000 shipments on every start**, from
+`app.seed.bulk-shipments` in `application.yml`. To start with only the four
+hand-written ones in `data.sql`, set it to 0 there, or override it per run:
+
+```bash
+APP_SEED_BULK_SHIPMENTS=0 mvn spring-boot:run
+```
+
+The rest of this section is about the two other ways to reach the same data.
 
 ### To check the seeder works — `mvn test`
 
