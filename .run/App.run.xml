@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <!-- The plain application: in-memory H2 with the four seeded shipments from
+       data.sql, and authentication on. Log in with joao / logistics2026. -->
+  <configuration default="false" name="App" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.jgomes.logistics.LogisticsApplication" />
+    <module name="logistics" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

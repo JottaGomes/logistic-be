@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <!-- Starts the application and fills the in-memory H2 with 10,000 generated
+       shipments. The data is rebuilt on every run, which takes about a second.
+       Wait for the "bulk_seed_done" line before using the app. -->
+  <configuration default="false" name="App with 10k shipments" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.jgomes.logistics.LogisticsApplication" />
+    <module name="logistics" />
+    <envs>
+      <env name="APP_SEED_BULK_SHIPMENTS" value="10000" />
+      <env name="APP_SECURITY_ENABLE_LOGIN" value="false" />
+    </envs>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

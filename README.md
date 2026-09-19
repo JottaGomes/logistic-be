@@ -211,16 +211,20 @@ in memory, so every restart starts empty and seeds again.
 
 ### From the IDE
 
-Add one environment variable to the run configuration and run
-`LogisticsApplication` as usual:
+Three run configurations are committed in `.run/`, so they show up in IntelliJ's
+run dropdown with no setting up:
 
-```
-APP_SEED_BULK_SHIPMENTS=10000
-```
+| Configuration | What it gives you |
+|---|---|
+| **App** | the four shipments from `data.sql`, authentication on |
+| **App with 10k shipments** | 10,000 generated shipments, authentication off |
+| **App with 10k shipments (persistent)** | the same, on disk, surviving restarts |
 
-The data goes into the same H2 the application is using, so it is there the
-moment it finishes starting. In-memory H2 is rebuilt on every start, so it seeds
-again each run — about a second.
+The seeding ones set `APP_SEED_BULK_SHIPMENTS=10000`; that is the only thing that
+turns the seeder on, so adding it by hand to any run configuration works too. The
+data goes into the same H2 the application is using, so it is there the moment it
+finishes starting — wait for the `bulk_seed_done` line. In-memory H2 is rebuilt on
+every start, so it seeds again each run, about a second.
 
 ### Keeping the data between restarts
 
