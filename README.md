@@ -143,6 +143,7 @@ controller/   ProfitCalculationController - the Calculate Profit use case
               ShipmentAdministrationController - payment and cost administration
 security/     JWT filter, token utility, security configuration
 exception/    GlobalExceptionHandler and ShipmentNotFoundException
+seed/         BulkDataSeeder - generated data for load testing, off by default
 ```
 
 ## Tests
@@ -151,7 +152,7 @@ exception/    GlobalExceptionHandler and ShipmentNotFoundException
 mvn test
 ```
 
-45 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
+50 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
 recording amounts and rejecting bad ones, duplicate references, pagination and
 sorting, the security layer and the error handler.
 
@@ -162,6 +163,37 @@ sorting, the security layer and the error handler.
   create a shipment, record its amounts, then calculate it. Run it with
   `npx newman run postman/Logistics-Calculate-Profit.postman_collection.json`.
 - **IntelliJ / VS Code**: the `.http` files in `http/`.
+
+## Generating test data
+
+To exercise the app at the volume NFR2 asks for, start it with a count:
+
+```bash
+APP_SEED_BULK_SHIPMENTS=10000 mvn spring-boot:run
+```
+
+or, as an argument:
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.arguments=--app.seed.bulk-shipments=10000
+```
+
+That writes 10,000 shipments, 30,000 income rows, 20,000 cost rows and 10,000
+calculations — around a second on H2. **Wait for the line before using the app**,
+because it accepts requests while the seeding is still running:
+
+```
+bulk_seed_done shipments=10000 incomes=30000 costs=20000 calculations=10000 tookMs=821
+```
+
+The generated references all start with `BULK-`, which keeps them recognisable and
+lets a second run detect that it already seeded — so against MariaDB you can
+restart with the flag still set without doubling the data. On H2 the database is
+in memory, so every restart starts empty and seeds again.
+
+Without the property the seeder does nothing at all, so it cannot fire by
+accident; `src/main/resources/data.sql` still provides the four hand-written
+shipments used by the tests and the Postman collection.
 
 ## Non-functional requirements
 
@@ -220,4 +252,4 @@ confirm it.
 | Entities / Repositories / DTO / Mapper / Service / Controller | `src/main/java/...`; one controller for the use case, a second for administration |
 | Endpoint collection | `postman/`, plus `http/` |
 | Database question answers | [DATABASE_QUESTIONS.md](DATABASE_QUESTIONS.md) |
-| Unit tests (optional) | `mvn test`, 45 tests |
+| Unit tests (optional) | `mvn test`, 50 tests |
