@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.adrianojlt</groupId>
+    <groupId>com.jgomes</groupId>
     <artifactId>logistics</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>logistics</name>
