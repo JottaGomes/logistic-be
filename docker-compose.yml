@@ -28,6 +28,7 @@ services:
       mariadb:
         condition: service_healthy
     environment:
+      SPRING_PROFILES_ACTIVE: mariadb
       DB_HOST: mariadb
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-logisticsdb}

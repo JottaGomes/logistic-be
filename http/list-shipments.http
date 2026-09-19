@@ -1,0 +1,2 @@
+### The shipments the Finance Department can ask to evaluate
+GET http://localhost:8080/api/shipments

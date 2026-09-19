@@ -1,0 +1,2 @@
+### Stored calculations, most recent first
+GET http://localhost:8080/api/shipments/calculations?page=0&size=10
