@@ -1,0 +1,10 @@
+### Operational cost administration.
+### Type is MAIN_CARRIAGE, HANDLING, CUSTOMS or OTHER.
+POST http://localhost:8080/api/shipments/SHP-2026-0099/costs
+Content-Type: application/json
+
+{
+  "type": "MAIN_CARRIAGE",
+  "amount": 5200.00,
+  "description": "Line haul"
+}

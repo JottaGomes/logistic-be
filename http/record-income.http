@@ -1,0 +1,10 @@
+### Customer payment administration: record an amount received for a shipment.
+### Type is CUSTOMER_PAYMENT or AGENT_INCOME; both count towards total income.
+POST http://localhost:8080/api/shipments/SHP-2026-0099/incomes
+Content-Type: application/json
+
+{
+  "type": "CUSTOMER_PAYMENT",
+  "amount": 7000.00,
+  "description": "Main carriage invoice"
+}

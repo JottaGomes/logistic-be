@@ -57,6 +57,22 @@ outcome and returns it.
 The amounts are never supplied by the caller — that is what makes the result
 reproducible, and it is what the use case document describes in steps 2 to 4.
 
+### Recording the data it depends on
+
+The use case pre-supposes that income and cost data is already in the system.
+Putting it there is what the requirements call customer payment administration and
+operational cost administration (section 1.4), and it lives on its own endpoints
+and its own screen so the use case under assessment stays self-contained.
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/shipments` | required | Registers a shipment; `409` if the reference is taken |
+| `GET` | `/api/shipments/{reference}` | required | What is recorded, with running totals |
+| `POST` | `/api/shipments/{reference}/incomes` | required | Records a customer payment or agent income |
+| `POST` | `/api/shipments/{reference}/costs` | required | Records an operational cost |
+
+### Evaluating it
+
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | `GET` | `/api/shipments` | required | Shipments available to evaluate |
@@ -115,7 +131,9 @@ repository/   Spring Data interfaces; SUM aggregation lives here
 dto/          request and response objects; entities never leave the service
 mapper/       MapStruct, entity <-> DTO
 service/      ProfitCalculationService - the use case
-controller/   ProfitCalculationController - the single exposed controller
+              ShipmentAdministrationService - recording the data it reads
+controller/   ProfitCalculationController - the Calculate Profit use case
+              ShipmentAdministrationController - payment and cost administration
 security/     JWT filter, token utility, security configuration
 exception/    GlobalExceptionHandler and ShipmentNotFoundException
 ```
@@ -126,13 +144,15 @@ exception/    GlobalExceptionHandler and ShipmentNotFoundException
 mvn test
 ```
 
-28 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
-pagination and sorting, the security layer and the error handler.
+38 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
+recording amounts and rejecting bad ones, duplicate references, pagination and
+sorting, the security layer and the error handler.
 
 ## Testing the endpoints
 
 - **Postman**: import `postman/Logistics-Calculate-Profit.postman_collection.json`.
-  10 requests with 17 assertions; run the whole collection with
+  20 requests with 33 assertions, including a folder that walks the whole path —
+  create a shipment, record its amounts, then calculate it. Run it with
   `npx newman run postman/Logistics-Calculate-Profit.postman_collection.json`.
 - **IntelliJ / VS Code**: the `.http` files in `http/`.
 
@@ -153,7 +173,7 @@ pagination and sorting, the security layer and the error handler.
 | Full SQL structure — tables, relations, indexes | `src/main/resources/schema.sql` |
 | Insertion scripts, 3–4 records per entity | `src/main/resources/data.sql` |
 | Embedded in-memory database | H2, the default profile |
-| Entities / Repositories / DTO / Mapper / Service / Controller | `src/main/java/...`, one controller exposed |
+| Entities / Repositories / DTO / Mapper / Service / Controller | `src/main/java/...`; one controller for the use case, a second for administration |
 | Endpoint collection | `postman/`, plus `http/` |
 | Database question answers | [DATABASE_QUESTIONS.md](DATABASE_QUESTIONS.md) |
-| Unit tests (optional) | `mvn test`, 28 tests |
+| Unit tests (optional) | `mvn test`, 38 tests |

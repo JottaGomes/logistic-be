@@ -1,28 +1,59 @@
 {
   "info": {
-    "name": "Logistics — Calculate Profit",
-    "description": "Endpoint collection for the Calculate Profit use case.\n\nRun 'Login' first when authentication is enabled: it stores the JWT in the {{token}} collection variable, and every other request sends it automatically.\n\nWith APP_SECURITY_ENABLE_LOGIN=false the authenticated requests work without logging in.",
+    "name": "Logistics \u2014 Calculate Profit",
+    "description": "Endpoint collection for the Calculate Profit use case.\n\nRun 'Login' first when authentication is enabled: it stores the JWT in the {{token}} collection variable, and every other request sends it automatically.\n\nWith APP_SECURITY_ENABLE_LOGIN=false the authenticated requests work without logging in.\n\nThe 'Record Data' folder walks the full path: create a shipment, record its incomes and costs, then calculate it. Run it in order.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8080" },
-    { "key": "token", "value": "" },
-    { "key": "shipmentReference", "value": "SHP-2026-0001" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "shipmentReference",
+      "value": "SHP-2026-0001"
+    },
+    {
+      "key": "newShipment",
+      "value": ""
+    }
   ],
   "auth": {
     "type": "bearer",
-    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
   },
   "item": [
     {
       "name": "Auth",
       "item": [
         {
-          "name": "Config — is login required?",
+          "name": "Config \u2014 is login required?",
           "request": {
             "method": "GET",
-            "auth": { "type": "noauth" },
-            "url": { "raw": "{{baseUrl}}/api/auth/config", "host": ["{{baseUrl}}"], "path": ["api", "auth", "config"] }
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "config"
+              ]
+            }
           }
         },
         {
@@ -42,10 +73,30 @@
           ],
           "request": {
             "method": "POST",
-            "auth": { "type": "noauth" },
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"username\": \"finance\",\n  \"password\": \"password123\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"finance\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
           }
         },
         {
@@ -66,26 +117,71 @@
           ],
           "request": {
             "method": "POST",
-            "auth": { "type": "noauth" },
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"username\": \"joao\",\n  \"password\": \"logistics2026\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"joao\",\n  \"password\": \"logistics2026\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
           }
         },
         {
-          "name": "Login — wrong password (401)",
+          "name": "Login \u2014 wrong password (401)",
           "event": [
             {
               "listen": "test",
-              "script": { "type": "text/javascript", "exec": ["pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"] }
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"
+                ]
+              }
             }
           ],
           "request": {
             "method": "POST",
-            "auth": { "type": "noauth" },
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"username\": \"joao\",\n  \"password\": \"wrong\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"joao\",\n  \"password\": \"wrong\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
           }
         }
       ]
@@ -109,11 +205,20 @@
           ],
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/shipments", "host": ["{{baseUrl}}"], "path": ["api", "shipments"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments"
+              ]
+            }
           }
         },
         {
-          "name": "Calculate — profit",
+          "name": "Calculate \u2014 profit",
           "event": [
             {
               "listen": "test",
@@ -131,13 +236,31 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"shipmentReference\": \"SHP-2026-0001\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/shipments/calculate", "host": ["{{baseUrl}}"], "path": ["api", "shipments", "calculate"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shipmentReference\": \"SHP-2026-0001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/calculate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "calculate"
+              ]
+            }
           }
         },
         {
-          "name": "Calculate — loss",
+          "name": "Calculate \u2014 loss",
           "event": [
             {
               "listen": "test",
@@ -152,13 +275,31 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"shipmentReference\": \"SHP-2026-0004\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/shipments/calculate", "host": ["{{baseUrl}}"], "path": ["api", "shipments", "calculate"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shipmentReference\": \"SHP-2026-0004\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/calculate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "calculate"
+              ]
+            }
           }
         },
         {
-          "name": "Calculate — unknown shipment (404)",
+          "name": "Calculate \u2014 unknown shipment (404)",
           "event": [
             {
               "listen": "test",
@@ -173,24 +314,65 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"shipmentReference\": \"SHP-2026-9999\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/shipments/calculate", "host": ["{{baseUrl}}"], "path": ["api", "shipments", "calculate"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shipmentReference\": \"SHP-2026-9999\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/calculate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "calculate"
+              ]
+            }
           }
         },
         {
-          "name": "Calculate — blank reference (400)",
+          "name": "Calculate \u2014 blank reference (400)",
           "event": [
             {
               "listen": "test",
-              "script": { "type": "text/javascript", "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] }
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));"
+                ]
+              }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"shipmentReference\": \"\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/shipments/calculate", "host": ["{{baseUrl}}"], "path": ["api", "shipments", "calculate"] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shipmentReference\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/calculate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "calculate"
+              ]
+            }
           }
         },
         {
@@ -211,11 +393,414 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/shipments/calculations?page=0&size=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "shipments", "calculations"],
-              "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "calculations"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
             }
           }
+        }
+      ]
+    },
+    {
+      "name": "Record Data (administration)",
+      "item": [
+        {
+          "name": "Create shipment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reference\": \"SHP-2026-0099\",\n  \"customer\": \"Corticeira Amorim\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('newShipment', pm.response.json().data.reference);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create shipment - duplicate (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reference\": \"SHP-2026-0001\",\n  \"customer\": \"Anyone\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409 Conflict', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Record customer payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{newShipment}}/incomes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{newShipment}}",
+                "incomes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"CUSTOMER_PAYMENT\",\n  \"amount\": 7000.0,\n  \"description\": \"Main carriage invoice\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('running income total', () => pm.expect(pm.response.json().data.totalIncome).to.eql(7000));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Record agent income",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{newShipment}}/incomes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{newShipment}}",
+                "incomes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"AGENT_INCOME\",\n  \"amount\": 450.0,\n  \"description\": \"Agent share\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('agent income adds to the same total', () => pm.expect(pm.response.json().data.totalIncome).to.eql(7450));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Record cost",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{newShipment}}/costs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{newShipment}}",
+                "costs"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"MAIN_CARRIAGE\",\n  \"amount\": 5200.0,\n  \"description\": \"Line haul\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Record cost - second line",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{newShipment}}/costs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{newShipment}}",
+                "costs"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"CUSTOMS\",\n  \"amount\": 380.0,\n  \"description\": \"Clearance\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('running cost total', () => pm.expect(pm.response.json().data.totalCosts).to.eql(5580));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Record income - unknown type (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{newShipment}}/incomes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{newShipment}}",
+                "incomes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"DONATION\",\n  \"amount\": 10\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+                  "pm.test('names the accepted values', () => pm.expect(pm.response.json().message).to.include('CUSTOMER_PAYMENT'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Record cost - negative amount (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{newShipment}}/costs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{newShipment}}",
+                "costs"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"HANDLING\",\n  \"amount\": -5\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Shipment detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{newShipment}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{newShipment}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data;",
+                  "pm.test('carries both sets of lines', () => { pm.expect(d.incomes).to.have.lengthOf(2); pm.expect(d.costs).to.have.lengthOf(2); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Calculate the shipment just recorded",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/calculate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "calculate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shipmentReference\": \"{{newShipment}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('7450 - 5580 = 1870', () => pm.expect(pm.response.json().data.profitOrLoss).to.eql(1870));"
+                ]
+              }
+            }
+          ]
         }
       ]
     }

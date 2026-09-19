@@ -1,0 +1,8 @@
+### Register a new shipment; the reference is the business key and must be unique
+POST http://localhost:8080/api/shipments
+Content-Type: application/json
+
+{
+  "reference": "SHP-2026-0099",
+  "customer": "Corticeira Amorim"
+}
