@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -23,6 +24,9 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,13 +71,44 @@ class ProfitCalculationControllerTest {
     void calculations_requestsTheGivenPageSortedByMostRecent() {
         Page<ProfitCalculationResponseDTO> page = new PageImpl<>(List.of());
         ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
-        when(service.findAll(pageable.capture())).thenReturn(page);
+        when(service.findAll(isNull(), pageable.capture())).thenReturn(page);
 
-        controller.calculations(2, 25);
+        controller.calculations(2, 25, "calculatedAt", "desc", null);
 
         assertThat(pageable.getValue().getPageNumber()).isEqualTo(2);
         assertThat(pageable.getValue().getPageSize()).isEqualTo(25);
         assertThat(pageable.getValue().getSort().getOrderFor("calculatedAt")).isNotNull();
         assertThat(pageable.getValue().getSort().getOrderFor("calculatedAt").isDescending()).isTrue();
+    }
+
+    @Test
+    void calculations_sortsByTheRequestedColumnWhenItExists() {
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        when(service.findAll(isNull(), pageable.capture())).thenReturn(new PageImpl<>(List.of()));
+
+        controller.calculations(0, 10, "profitOrLoss", "asc", null);
+
+        Sort.Order order = pageable.getValue().getSort().getOrderFor("profitOrLoss");
+        assertThat(order).isNotNull();
+        assertThat(order.isAscending()).isTrue();
+    }
+
+    @Test
+    void calculations_fallsBackToTheDateWhenTheColumnIsUnknown() {
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        when(service.findAll(isNull(), pageable.capture())).thenReturn(new PageImpl<>(List.of()));
+
+        controller.calculations(0, 10, "; DROP TABLE shipment", "desc", null);
+
+        assertThat(pageable.getValue().getSort().getOrderFor("calculatedAt")).isNotNull();
+    }
+
+    @Test
+    void calculations_passesTheSearchTermThrough() {
+        when(service.findAll(eq("sonae"), any())).thenReturn(new PageImpl<>(List.of()));
+
+        controller.calculations(0, 10, "calculatedAt", "desc", "sonae");
+
+        verify(service).findAll(eq("sonae"), any());
     }
 }

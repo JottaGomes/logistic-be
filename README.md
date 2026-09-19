@@ -77,7 +77,14 @@ and its own screen so the use case under assessment stays self-contained.
 |---|---|---|---|
 | `GET` | `/api/shipments` | required | Shipments available to evaluate |
 | `POST` | `/api/shipments/calculate` | required | Calculates and stores profit or loss |
-| `GET` | `/api/shipments/calculations` | required | Stored calculations, paged, most recent first |
+| `GET` | `/api/shipments/calculations` | required | Stored calculations, paged, sorted and filtered |
+
+`/api/shipments/calculations` takes `page`, `size`, `sort`, `direction` and
+`search`. Sorting and filtering are done in the database rather than the browser,
+because only one page is ever loaded — filtering client-side would silently ignore
+every match on another page. `sort` is matched against a fixed set of columns, so
+an unexpected value falls back to the date instead of reaching the persistence
+layer.
 | `POST` | `/api/auth/login` | public | Returns a JWT |
 | `POST` | `/api/auth/register` | public | Creates an account, returns a JWT |
 | `GET` | `/api/auth/config` | public | Whether login is enabled |
@@ -144,14 +151,14 @@ exception/    GlobalExceptionHandler and ShipmentNotFoundException
 mvn test
 ```
 
-38 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
+41 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
 recording amounts and rejecting bad ones, duplicate references, pagination and
 sorting, the security layer and the error handler.
 
 ## Testing the endpoints
 
 - **Postman**: import `postman/Logistics-Calculate-Profit.postman_collection.json`.
-  20 requests with 33 assertions, including a folder that walks the whole path —
+  22 requests with 37 assertions, including a folder that walks the whole path —
   create a shipment, record its amounts, then calculate it. Run it with
   `npx newman run postman/Logistics-Calculate-Profit.postman_collection.json`.
 - **IntelliJ / VS Code**: the `.http` files in `http/`.
@@ -176,4 +183,4 @@ sorting, the security layer and the error handler.
 | Entities / Repositories / DTO / Mapper / Service / Controller | `src/main/java/...`; one controller for the use case, a second for administration |
 | Endpoint collection | `postman/`, plus `http/` |
 | Database question answers | [DATABASE_QUESTIONS.md](DATABASE_QUESTIONS.md) |
-| Unit tests (optional) | `mvn test`, 38 tests |
+| Unit tests (optional) | `mvn test`, 41 tests |

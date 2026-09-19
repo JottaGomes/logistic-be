@@ -413,6 +413,82 @@
               ]
             }
           }
+        },
+        {
+          "name": "List calculations - filtered",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json().data.content;",
+                  "pm.test('every row matches the filter', () => rows.forEach(r => pm.expect((r.customer + r.shipmentReference).toLowerCase()).to.include('sonae')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/calculations?search=sonae",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "calculations"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "sonae"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List calculations - sorted by profit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json().data.content.map(r => r.profitOrLoss);",
+                  "pm.test('ascending by profit', () => pm.expect(rows).to.eql([...rows].sort((a, b) => a - b)));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/calculations?sort=profitOrLoss&direction=asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "calculations"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "profitOrLoss"
+                },
+                {
+                  "key": "direction",
+                  "value": "asc"
+                }
+              ]
+            }
+          }
         }
       ]
     },
