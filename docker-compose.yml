@@ -1,0 +1,41 @@
+services:
+
+  mariadb:
+    image: mariadb:11
+    container_name: logistics-db
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-logisticsdb}
+      MARIADB_USER: ${DB_USERNAME:-logistics}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-logistics1pass}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpass}
+    ports:
+      # exposed so the backend can also be run from the IDE against this database
+      - "3306:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  backend:
+    build: .
+    # the Dockerfile's base images have no arm64 variant
+    platform: linux/amd64
+    container_name: dachser-backend
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-logisticsdb}
+      DB_USERNAME: ${DB_USERNAME:-logistics}
+      DB_PASSWORD: ${DB_PASSWORD:-logistics1pass}
+      JWT_SECRET: ${JWT_SECRET:-dachser-logistics-super-secret-key-32-chars-min}
+    ports:
+      - "8080:8333"
+
+volumes:
+  mariadb-data:
