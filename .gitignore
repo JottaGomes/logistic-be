@@ -32,3 +32,6 @@ Thumbs.db
 # Environment
 .env
 *.env.local
+
+# H2 file-mode database
+/data/

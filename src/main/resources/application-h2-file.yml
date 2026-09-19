@@ -1,0 +1,10 @@
+# H2 on disk instead of in memory, activated with SPRING_PROFILES_ACTIVE=h2-file.
+#
+# Same embedded database, same SQL — the only difference is that it survives a
+# restart, which is what makes it useful for seeding once and then working with
+# the data. AUTO_SERVER lets a second process (the H2 console, or the IDE's
+# database tool) attach while the application holds the file open.
+spring:
+
+  datasource:
+    url: jdbc:h2:file:./data/logisticsdb;MODE=MySQL;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE

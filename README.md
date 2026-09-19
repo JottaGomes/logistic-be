@@ -209,8 +209,33 @@ lets a second run detect that it already seeded — so against MariaDB you can
 restart with the flag still set without doubling the data. On H2 the database is
 in memory, so every restart starts empty and seeds again.
 
-Against H2 the data still disappears on restart, because the database is in
-memory. For 10,000 shipments that survive, point the app at MariaDB:
+### From the IDE
+
+Add one environment variable to the run configuration and run
+`LogisticsApplication` as usual:
+
+```
+APP_SEED_BULK_SHIPMENTS=10000
+```
+
+The data goes into the same H2 the application is using, so it is there the
+moment it finishes starting. In-memory H2 is rebuilt on every start, so it seeds
+again each run — about a second.
+
+### Keeping the data between restarts
+
+Add the file-mode profile and it seeds once, into `./data/logisticsdb.mv.db`:
+
+```
+SPRING_PROFILES_ACTIVE=h2-file
+APP_SEED_BULK_SHIPMENTS=10000
+```
+
+Restart without the seed variable and the 10,000 shipments are still there; leave
+it set and it will not double them. Still the same embedded H2, just on disk
+rather than in memory. Delete `data/` to start over.
+
+For a full database instead, point the app at MariaDB:
 
 ```bash
 docker compose up -d mariadb
