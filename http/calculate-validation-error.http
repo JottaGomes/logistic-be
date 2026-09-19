@@ -1,0 +1,6 @@
+POST http://localhost:8080/api/shipments/calculate
+Content-Type: application/json
+
+{
+  "cost": 200.00
+}

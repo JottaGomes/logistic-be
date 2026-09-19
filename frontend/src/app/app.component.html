@@ -1,0 +1,28 @@
+@if (!isLoginPage) {
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="logo-area">
+        <img src="assets/logo.png" alt="DACHSER Intelligent Logistics" />
+      </div>
+      <nav>
+        <a class="nav-item active">
+          <mat-icon>paid</mat-icon>
+          Calculate Profit
+        </a>
+      </nav>
+      @if (authService.loginEnabled) {
+        <div class="sidebar-footer">
+          <span class="username-label">{{ authService.getUsername() }}</span>
+          <button mat-icon-button (click)="logout()" title="Logout">
+            <mat-icon>logout</mat-icon>
+          </button>
+        </div>
+      }
+    </aside>
+    <main class="main-content">
+      <router-outlet />
+    </main>
+  </div>
+} @else {
+  <router-outlet />
+}

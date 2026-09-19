@@ -1,0 +1,103 @@
+<div class="container py-4">
+  <p class="shipment-id">Shipment ID: <strong>{{ lastShipmentId !== null ? lastShipmentId : '' }}</strong></p>
+
+  <form [formGroup]="form" class="row g-3 align-items-start">
+    <div class="col-12 col-md-4">
+      <fieldset class="border rounded p-3">
+        <legend class="float-none w-auto px-2 fs-6">Income</legend>
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Income</mat-label>
+          <input matInput type="number" formControlName="income" min="0" />
+          @if (form.get('income')?.hasError('required') && form.get('income')?.touched) {
+            <mat-error>Income is required</mat-error>
+          }
+          @if (form.get('income')?.hasError('min')) {
+            <mat-error>Must be &gt;= 0</mat-error>
+          }
+        </mat-form-field>
+      </fieldset>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <fieldset class="border rounded p-3">
+        <legend class="float-none w-auto px-2 fs-6">Costs</legend>
+        <div class="row g-2">
+          <div class="col-6">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Cost</mat-label>
+              <input matInput type="number" formControlName="cost" min="0" />
+              @if (form.get('cost')?.hasError('required') && form.get('cost')?.touched) {
+                <mat-error>Cost is required</mat-error>
+              }
+              @if (form.get('cost')?.hasError('min')) {
+                <mat-error>Must be &gt;= 0</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <div class="col-6">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Additional Cost</mat-label>
+              <input matInput type="number" formControlName="additionalCost" min="0" />
+            </mat-form-field>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="col-12 col-md-2 d-flex align-items-center justify-content-end pt-2">
+      <button
+        mat-raised-button
+        color="primary"
+        [disabled]="loading || form.invalid"
+        (click)="onCalculate()"
+      >
+        Calculate
+      </button>
+    </div>
+  </form>
+
+  @if (errorMessage) {
+    <div class="alert alert-danger mt-3">{{ errorMessage }}</div>
+  }
+
+  <div class="mt-4 table-wrapper">
+    <table mat-table [dataSource]="shipments" class="w-100 mat-elevation-z2">
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>Shipment ID</th>
+        <td mat-cell *matCellDef="let s">{{ s.id }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="income">
+        <th mat-header-cell *matHeaderCellDef>Income</th>
+        <td mat-cell *matCellDef="let s">{{ s.income }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="totalCosts">
+        <th mat-header-cell *matHeaderCellDef>Total Costs</th>
+        <td mat-cell *matCellDef="let s">{{ s.totalCosts }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="profitOrLoss">
+        <th mat-header-cell *matHeaderCellDef>Profit or Loss</th>
+        <td
+          mat-cell
+          *matCellDef="let s"
+          [class.profit]="s.profitOrLoss >= 0"
+          [class.loss]="s.profitOrLoss < 0"
+        >
+          {{ s.profitOrLoss }}
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+    <mat-paginator
+      [length]="totalElements"
+      [pageSize]="pageSize"
+      [pageIndex]="pageIndex"
+      [pageSizeOptions]="[5, 10, 25]"
+      (page)="onPageChange($event)"
+    ></mat-paginator>
+  </div>
+</div>
