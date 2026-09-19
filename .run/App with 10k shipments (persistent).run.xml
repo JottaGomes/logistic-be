@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <!-- Same, but H2 lives in ./data/logisticsdb.mv.db instead of memory, so the
+       10,000 shipments survive a restart. The seeder detects its own previous
+       run, so this can be started repeatedly without doubling the data.
+       Delete the data/ folder to start over. -->
+  <configuration default="false" name="App with 10k shipments (persistent)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.jgomes.logistics.LogisticsApplication" />
+    <module name="logistics" />
+    <option name="ACTIVE_PROFILES" value="h2-file" />
+    <envs>
+      <env name="APP_SEED_BULK_SHIPMENTS" value="10000" />
+      <env name="APP_SECURITY_ENABLE_LOGIN" value="false" />
+    </envs>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
