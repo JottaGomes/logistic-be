@@ -1,13 +1,10 @@
 <component name="ProjectRunConfigurationManager">
-  <!-- The plain application with only the four shipments from data.sql:
-       the generated ones are switched off here. Authentication is on;
-       log in with joao / logistics2026. -->
+  <!-- The application as configured: authentication on, and the 10,000 generated
+       shipments that application.yml asks for. Log in with joao / logistics2026.
+       Set APP_SEED_BULK_SHIPMENTS=0 here to start with only the four in data.sql. -->
   <configuration default="false" name="App" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.jgomes.logistics.LogisticsApplication" />
     <module name="logistics" />
-    <envs>
-      <env name="APP_SEED_BULK_SHIPMENTS" value="0" />
-    </envs>
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
