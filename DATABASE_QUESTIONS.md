@@ -125,6 +125,17 @@ service fail loudly instead of quietly issuing queries from the view layer.
 `FetchType.LAZY`; the default `EAGER` on `@ManyToOne` would drag a shipment along
 with every row read.
 
+**Measured, not assumed.** Against a MariaDB holding 10,004 shipments, 50,014
+income and cost rows and 10,004 calculations: a calculation takes 109 ms, the
+first page of history 26 ms, and page 500 of that history 15 ms — the last page
+costs the same as the first, which is the property that matters.
+
+That load test also found the one place this had been got wrong: `GET /shipments`
+returned every row, 639 kB and 177 ms at this volume, to populate a dropdown. It
+now takes a search term and a limit capped at 100, and answers in 12 ms with
+1.3 kB. Worth stating plainly, because it is the failure mode this whole answer is
+about, and reasoning alone had not caught it.
+
 Beyond what is implemented, the next steps in order would be: a composite index on
 `(shipment_id, income_type)` if reporting starts slicing by type; range
 partitioning `profit_calculation` by `calculated_at`, since queries are

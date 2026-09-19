@@ -56,10 +56,10 @@ class ProfitCalculationControllerTest {
 
     @Test
     void shipments_returnsTheListToChooseFrom() {
-        when(service.findAllShipments()).thenReturn(List.of(
+        when(service.findShipments(null, 20)).thenReturn(List.of(
                 new ShipmentResponseDTO(1L, "SHP-2026-0001", "Sonae")));
 
-        ResponseEntity<ApiResponse<List<ShipmentResponseDTO>>> response = controller.shipments();
+        ResponseEntity<ApiResponse<List<ShipmentResponseDTO>>> response = controller.shipments(null, 20);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         Assertions.assertNotNull(response.getBody());
@@ -110,5 +110,14 @@ class ProfitCalculationControllerTest {
         controller.calculations(0, 10, "calculatedAt", "desc", "sonae");
 
         verify(service).findAll(eq("sonae"), any());
+    }
+
+    @Test
+    void shipments_passesTheSearchTermAndLimitThrough() {
+        when(service.findShipments("sonae", 5)).thenReturn(List.of());
+
+        controller.shipments("sonae", 5);
+
+        verify(service).findShipments("sonae", 5);
     }
 }

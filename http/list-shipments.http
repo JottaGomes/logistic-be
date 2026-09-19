@@ -1,2 +1,2 @@
-### The shipments the Finance Department can ask to evaluate
-GET http://localhost:8080/api/shipments
+### The shipments to evaluate: a bounded slice, narrowed by search
+GET http://localhost:8080/api/shipments?search=sonae&limit=20

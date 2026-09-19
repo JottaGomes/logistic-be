@@ -198,7 +198,8 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('200 OK', () => pm.response.to.have.status(200));",
-                  "pm.test('returns the seeded shipments', () => pm.expect(pm.response.json().data).to.be.an('array').that.is.not.empty);"
+                  "pm.test('returns the seeded shipments', () => pm.expect(pm.response.json().data).to.be.an('array').that.is.not.empty);",
+                  "pm.test('never returns the whole table', () => pm.expect(pm.response.json().data.length).to.be.at.most(100));"
                 ]
               }
             }
@@ -485,6 +486,75 @@
                 {
                   "key": "direction",
                   "value": "asc"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List shipments - search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json().data;",
+                  "pm.test('every row matches', () => rows.forEach(r => pm.expect((r.reference + r.customer).toLowerCase()).to.include('sonae')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments?search=sonae",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "sonae"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List shipments - limit is capped",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('a huge limit is capped at 100', () => pm.expect(pm.response.json().data.length).to.be.at.most(100));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments?limit=99999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "99999"
                 }
               ]
             }
