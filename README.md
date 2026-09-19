@@ -152,7 +152,7 @@ seed/         BulkDataSeeder - generated data for load testing, off by default
 mvn test
 ```
 
-50 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
+54 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
 recording amounts and rejecting bad ones, duplicate references, pagination and
 sorting, the security layer and the error handler.
 
@@ -165,6 +165,24 @@ sorting, the security layer and the error handler.
 - **IntelliJ / VS Code**: the `.http` files in `http/`.
 
 ## Generating test data
+
+Two ways, and they are for different things.
+
+### To check the seeder works — `mvn test`
+
+`BulkDataSeederIntegrationTest` boots the application against H2, seeds 10,000
+shipments for real and asserts the counts and the sums. It runs as part of the
+normal suite and adds about two seconds.
+
+```bash
+mvn test -Dtest=BulkDataSeederIntegrationTest
+```
+
+The rows exist only for the length of that test: H2 lives inside the JVM, so they
+go when it exits. Use it to prove the seeder is correct, not to fill a database
+you then want to click around in.
+
+### To fill a database you can use — run the app
 
 To exercise the app at the volume NFR2 asks for, start it with a count:
 
@@ -190,6 +208,18 @@ The generated references all start with `BULK-`, which keeps them recognisable a
 lets a second run detect that it already seeded — so against MariaDB you can
 restart with the flag still set without doubling the data. On H2 the database is
 in memory, so every restart starts empty and seeds again.
+
+Against H2 the data still disappears on restart, because the database is in
+memory. For 10,000 shipments that survive, point the app at MariaDB:
+
+```bash
+docker compose up -d mariadb
+SPRING_PROFILES_ACTIVE=mariadb APP_SEED_BULK_SHIPMENTS=10000 mvn spring-boot:run
+```
+
+Restart it afterwards without the flag and the data is still there; the seeder
+recognises its own previous run, so leaving the flag set does not double it
+either.
 
 Without the property the seeder does nothing at all, so it cannot fire by
 accident; `src/main/resources/data.sql` still provides the four hand-written
@@ -252,4 +282,4 @@ confirm it.
 | Entities / Repositories / DTO / Mapper / Service / Controller | `src/main/java/...`; one controller for the use case, a second for administration |
 | Endpoint collection | `postman/`, plus `http/` |
 | Database question answers | [DATABASE_QUESTIONS.md](DATABASE_QUESTIONS.md) |
-| Unit tests (optional) | `mvn test`, 50 tests |
+| Unit tests (optional) | `mvn test`, 54 tests |
