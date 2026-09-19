@@ -32,10 +32,16 @@ public class ProfitCalculationController {
         this.service = service;
     }
 
-    /** The shipments the Finance Department can ask to evaluate. */
+    /**
+     * The shipments the Finance Department can ask to evaluate: a bounded slice,
+     * narrowed by {@code search}, so the response size does not grow with the table.
+     */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ShipmentResponseDTO>>> shipments() {
-        return ResponseEntity.ok(ApiResponse.ok(service.findAllShipments()));
+    public ResponseEntity<ApiResponse<List<ShipmentResponseDTO>>> shipments(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "20") int limit) {
+
+        return ResponseEntity.ok(ApiResponse.ok(service.findShipments(search, limit)));
     }
 
     @PostMapping("/calculate")

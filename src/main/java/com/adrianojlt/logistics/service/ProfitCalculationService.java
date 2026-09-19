@@ -15,6 +15,7 @@ import com.adrianojlt.logistics.repository.ProfitCalculationRepository;
 import com.adrianojlt.logistics.repository.ShipmentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,6 +36,9 @@ import java.util.List;
 @Slf4j
 @Service
 public class ProfitCalculationService {
+
+    /** Hard ceiling, so a crafted request cannot ask for the whole table. */
+    private static final int MAX_SHIPMENTS = 100;
 
     private final ShipmentRepository shipmentRepository;
     private final IncomeRepository incomeRepository;
@@ -107,9 +111,20 @@ public class ProfitCalculationService {
         return calculationRepository.findByShipmentMatching(pattern, pageable).map(mapper::toResponseDTO);
     }
 
+    /**
+     * The shipments offered for selection: at most {@code limit}, optionally
+     * narrowed by a search term. Never the whole table — see ShipmentRepository.
+     */
     @Transactional(readOnly = true)
-    public List<ShipmentResponseDTO> findAllShipments() {
-        return mapper.toShipmentDTOs(shipmentRepository.findAll());
+    public List<ShipmentResponseDTO> findShipments(String search, int limit) {
+
+        Pageable slice = PageRequest.of(0, Math.min(Math.max(limit, 1), MAX_SHIPMENTS));
+
+        List<Shipment> shipments = search == null || search.isBlank()
+                ? shipmentRepository.findSlice(slice)
+                : shipmentRepository.search("%" + search.trim().toLowerCase() + "%", slice);
+
+        return mapper.toShipmentDTOs(shipments);
     }
 
     /** Falls back to "system" when authentication is switched off. */

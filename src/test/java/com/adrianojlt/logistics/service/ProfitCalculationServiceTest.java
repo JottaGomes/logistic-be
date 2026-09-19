@@ -17,6 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.data.domain.Pageable;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +26,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -118,5 +121,40 @@ class ProfitCalculationServiceTest {
                 .hasMessageContaining("SHP-NOPE");
 
         verify(calculationRepository, never()).save(any());
+    }
+
+    @Test
+    void findShipments_withoutASearchReturnsABoundedSlice() {
+        when(shipmentRepository.findSlice(any())).thenReturn(List.of(shipment()));
+        when(mapper.toShipmentDTOs(any())).thenReturn(List.of());
+
+        service.findShipments(null, 20);
+
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(shipmentRepository).findSlice(pageable.capture());
+        assertThat(pageable.getValue().getPageSize()).isEqualTo(20);
+    }
+
+    /** A crafted limit must not turn into "give me the whole table". */
+    @Test
+    void findShipments_capsTheLimit() {
+        when(shipmentRepository.findSlice(any())).thenReturn(List.of());
+        when(mapper.toShipmentDTOs(any())).thenReturn(List.of());
+
+        service.findShipments(null, 100000);
+
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(shipmentRepository).findSlice(pageable.capture());
+        assertThat(pageable.getValue().getPageSize()).isEqualTo(100);
+    }
+
+    @Test
+    void findShipments_withASearchMatchesReferenceOrCustomer() {
+        when(shipmentRepository.search(any(), any())).thenReturn(List.of(shipment()));
+        when(mapper.toShipmentDTOs(any())).thenReturn(List.of());
+
+        service.findShipments("  Sonae ", 20);
+
+        verify(shipmentRepository).search(eq("%sonae%"), any());
     }
 }

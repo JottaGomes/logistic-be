@@ -75,7 +75,7 @@ and its own screen so the use case under assessment stays self-contained.
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/shipments` | required | Shipments available to evaluate |
+| `GET` | `/api/shipments` | required | Shipments to evaluate; `search` and `limit`, capped at 100 |
 | `POST` | `/api/shipments/calculate` | required | Calculates and stores profit or loss |
 | `GET` | `/api/shipments/calculations` | required | Stored calculations, paged, sorted and filtered |
 
@@ -151,17 +151,54 @@ exception/    GlobalExceptionHandler and ShipmentNotFoundException
 mvn test
 ```
 
-41 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
+45 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
 recording amounts and rejecting bad ones, duplicate references, pagination and
 sorting, the security layer and the error handler.
 
 ## Testing the endpoints
 
 - **Postman**: import `postman/Logistics-Calculate-Profit.postman_collection.json`.
-  22 requests with 37 assertions, including a folder that walks the whole path —
+  24 requests with 42 assertions, including a folder that walks the whole path —
   create a shipment, record its amounts, then calculate it. Run it with
   `npx newman run postman/Logistics-Calculate-Profit.postman_collection.json`.
 - **IntelliJ / VS Code**: the `.http` files in `http/`.
+
+## Non-functional requirements
+
+Measured against a MariaDB loaded with **10,004 shipments, 50,014 income and cost
+rows and 10,004 stored calculations** — the daily volume NFR2 asks for. Averages
+of five calls each.
+
+| Operation | Time | Response |
+|---|---|---|
+| `POST /calculate` one shipment | 109 ms | — |
+| `GET /calculations` first page | 26 ms | 2.4 kB |
+| `GET /calculations` page 500 | 15 ms | 2.4 kB |
+| `GET /calculations` sorted by profit | 14 ms | 2.4 kB |
+| `GET /calculations` filtered | 12 ms | 2.4 kB |
+| `GET /shipments` | 12 ms | 1.3 kB |
+
+**NFR1** (calculate within 0.5 minutes) — met with room to spare: 109 ms against a
+30,000 ms budget.
+
+**NFR2** (10,000 shipments a day) — met. Nothing grows with the row count: the
+totals are two indexed `SUM` queries, and every listing is a bounded page, which
+is why the last page costs the same as the first.
+
+This is also what the load test caught: `GET /shipments` used to return the whole
+table — 639 kB and 177 ms at this volume, feeding a dropdown with ten thousand
+options. It is now a bounded, searchable slice, capped at 100 server-side, and the
+UI narrows it with a typeahead instead of holding the list.
+
+**NFR3** (99.9% uptime) — not something the code can claim on its own. It needs a
+deployment with health checks, restart policies and more than one instance. What
+is here that helps: the app is stateless (JWT, no session), so it scales
+horizontally, and `docker-compose.yml` gives the database a health check the
+backend waits on.
+
+**NFR4** (under two hours of training) — not measured. Two screens, one action
+each, and every amount labelled; that is the intent, but only real users can
+confirm it.
 
 ## Configuration
 
@@ -183,4 +220,4 @@ sorting, the security layer and the error handler.
 | Entities / Repositories / DTO / Mapper / Service / Controller | `src/main/java/...`; one controller for the use case, a second for administration |
 | Endpoint collection | `postman/`, plus `http/` |
 | Database question answers | [DATABASE_QUESTIONS.md](DATABASE_QUESTIONS.md) |
-| Unit tests (optional) | `mvn test`, 41 tests |
+| Unit tests (optional) | `mvn test`, 45 tests |
