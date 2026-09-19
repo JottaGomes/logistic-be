@@ -26,6 +26,12 @@ spring:
 
 app:
 
+  seed:
+    # Generated shipments written at startup, on top of the four in data.sql.
+    # Set to 0 to start with only the hand-written ones; the environment variable
+    # APP_SEED_BULK_SHIPMENTS overrides this without touching the file.
+    bulk-shipments: 10000
+
   security:
     enable-login: true
     cors-allowed-origins:
