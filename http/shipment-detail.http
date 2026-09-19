@@ -1,0 +1,2 @@
+### Everything recorded against a shipment, with running totals
+GET http://localhost:8080/api/shipments/SHP-2026-0099
