@@ -47,10 +47,29 @@ public class ProfitCalculationController {
     @GetMapping("/calculations")
     public ResponseEntity<ApiResponse<Page<ProfitCalculationResponseDTO>>> calculations(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "calculatedAt") String sort,
+            @RequestParam(defaultValue = "desc") String direction,
+            @RequestParam(required = false) String search) {
 
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "calculatedAt"));
+        Sort.Direction order = "asc".equalsIgnoreCase(direction) ? Sort.Direction.ASC : Sort.Direction.DESC;
 
-        return ResponseEntity.ok(ApiResponse.ok(service.findAll(pageable)));
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(order, sortProperty(sort)));
+
+        return ResponseEntity.ok(ApiResponse.ok(service.findAll(search, pageable)));
+    }
+
+    /**
+     * Only sorts by columns that exist, so a stray query parameter cannot turn into
+     * a 500 from the persistence layer.
+     */
+    private String sortProperty(String requested) {
+
+        return switch (requested) {
+            case "profitOrLoss", "totalIncome", "totalCosts" -> requested;
+            case "shipmentReference" -> "shipment.reference";
+            case "customer" -> "shipment.customer";
+            default -> "calculatedAt";
+        };
     }
 }

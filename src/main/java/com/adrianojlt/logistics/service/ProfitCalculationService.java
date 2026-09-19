@@ -96,8 +96,15 @@ public class ProfitCalculationService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProfitCalculationResponseDTO> findAll(Pageable pageable) {
-        return calculationRepository.findAll(pageable).map(mapper::toResponseDTO);
+    public Page<ProfitCalculationResponseDTO> findAll(String search, Pageable pageable) {
+
+        if (search == null || search.isBlank()) {
+            return calculationRepository.findAll(pageable).map(mapper::toResponseDTO);
+        }
+
+        String pattern = "%" + search.trim().toLowerCase() + "%";
+
+        return calculationRepository.findByShipmentMatching(pattern, pageable).map(mapper::toResponseDTO);
     }
 
     @Transactional(readOnly = true)
