@@ -1,0 +1,33 @@
+.shipment-id {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.profit {
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.loss {
+  color: #c62828;
+  font-weight: 500;
+}
+
+::ng-deep .mat-mdc-header-row {
+  background-color: #f5a800 !important;
+}
+
+::ng-deep .mat-mdc-header-cell {
+  color: #fff !important;
+  font-weight: 600;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+@media (max-width: 767px) {
+  .table-wrapper table {
+    min-width: 500px;
+  }
+}

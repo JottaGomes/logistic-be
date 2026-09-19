@@ -1,0 +1,9 @@
+{
+  "buildCommand": "npm run build -- --base-href /",
+  "outputDirectory": "dist/dachser-logistics-ui/browser",
+  "installCommand": "npm install",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

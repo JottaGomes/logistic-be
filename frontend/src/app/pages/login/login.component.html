@@ -1,0 +1,38 @@
+<div class="login-wrapper">
+  <div class="login-card">
+
+    <div class="logo-area">
+      <img src="assets/logo.png" alt="DACHSER Intelligent Logistics" />
+    </div>
+
+    <h2>Logistics Login</h2>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Username</mat-label>
+        <input matInput formControlName="username" autocomplete="username" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Password</mat-label>
+        <input matInput formControlName="password"
+               [type]="passwordVisible ? 'text' : 'password'"
+               autocomplete="current-password" />
+        <button mat-icon-button matSuffix type="button"
+                (click)="passwordVisible = !passwordVisible">
+          <mat-icon>{{ passwordVisible ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+      </mat-form-field>
+
+      @if (errorMessage) {
+        <p class="error-msg">{{ errorMessage }}</p>
+      }
+
+      <button mat-raised-button class="sign-in-btn" type="submit" [disabled]="form.invalid">
+        Sign In
+      </button>
+
+    </form>
+  </div>
+</div>
