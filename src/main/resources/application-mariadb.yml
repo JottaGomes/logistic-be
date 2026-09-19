@@ -1,0 +1,17 @@
+# Persistent database, activated with SPRING_PROFILES_ACTIVE=mariadb.
+# Used by docker-compose.yml; the defaults point at a MariaDB on localhost.
+spring:
+
+  datasource:
+    url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:logisticsdb}
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: ${DB_USERNAME:logistics}
+    password: ${DB_PASSWORD:logistics1pass}
+
+  jpa:
+    database-platform: org.hibernate.dialect.MariaDBDialect
+    show-sql: false
+
+  h2:
+    console:
+      enabled: false

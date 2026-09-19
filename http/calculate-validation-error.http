@@ -1,6 +1,7 @@
+### A blank reference never reaches the service: 400 from bean validation
 POST http://localhost:8080/api/shipments/calculate
 Content-Type: application/json
 
 {
-  "cost": 200.00
+  "shipmentReference": ""
 }

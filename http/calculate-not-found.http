@@ -1,0 +1,7 @@
+### Alternative flow I: the shipment does not exist, so the request fails with 404
+POST http://localhost:8080/api/shipments/calculate
+Content-Type: application/json
+
+{
+  "shipmentReference": "SHP-2026-9999"
+}

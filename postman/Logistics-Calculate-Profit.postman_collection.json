@@ -1,0 +1,223 @@
+{
+  "info": {
+    "name": "Logistics — Calculate Profit",
+    "description": "Endpoint collection for the Calculate Profit use case.\n\nRun 'Login' first when authentication is enabled: it stores the JWT in the {{token}} collection variable, and every other request sends it automatically.\n\nWith APP_SECURITY_ENABLE_LOGIN=false the authenticated requests work without logging in.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "token", "value": "" },
+    { "key": "shipmentReference", "value": "SHP-2026-0001" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Config — is login required?",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": { "raw": "{{baseUrl}}/api/auth/config", "host": ["{{baseUrl}}"], "path": ["api", "auth", "config"] }
+          }
+        },
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "if (body.success) { pm.collectionVariables.set('token', body.data.token); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"finance\",\n  \"password\": \"password123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns a token', () => pm.expect(body.data.token).to.be.a('string'));",
+                  "pm.collectionVariables.set('token', body.data.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"joao\",\n  \"password\": \"logistics2026\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Login — wrong password (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"] }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"joao\",\n  \"password\": \"wrong\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Calculate Profit",
+      "item": [
+        {
+          "name": "List shipments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('returns the seeded shipments', () => pm.expect(pm.response.json().data).to.be.an('array').that.is.not.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/shipments", "host": ["{{baseUrl}}"], "path": ["api", "shipments"] }
+          }
+        },
+        {
+          "name": "Calculate — profit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const d = pm.response.json().data;",
+                  "pm.test('profit = income - costs', () => pm.expect(d.profitOrLoss).to.eql(d.totalIncome - d.totalCosts));",
+                  "pm.test('SHP-2026-0001 profits 2100', () => pm.expect(d.profitOrLoss).to.eql(2100));",
+                  "pm.test('agent income is included', () => pm.expect(d.incomes.map(i => i.type)).to.include('AGENT_INCOME'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"shipmentReference\": \"SHP-2026-0001\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/shipments/calculate", "host": ["{{baseUrl}}"], "path": ["api", "shipments", "calculate"] }
+          }
+        },
+        {
+          "name": "Calculate — loss",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('SHP-2026-0004 loses 1500', () => pm.expect(pm.response.json().data.profitOrLoss).to.eql(-1500));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"shipmentReference\": \"SHP-2026-0004\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/shipments/calculate", "host": ["{{baseUrl}}"], "path": ["api", "shipments", "calculate"] }
+          }
+        },
+        {
+          "name": "Calculate — unknown shipment (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('404 Not Found', () => pm.response.to.have.status(404));",
+                  "pm.test('explains which reference failed', () => pm.expect(pm.response.json().message).to.include('SHP-2026-9999'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"shipmentReference\": \"SHP-2026-9999\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/shipments/calculate", "host": ["{{baseUrl}}"], "path": ["api", "shipments", "calculate"] }
+          }
+        },
+        {
+          "name": "Calculate — blank reference (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"shipmentReference\": \"\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/shipments/calculate", "host": ["{{baseUrl}}"], "path": ["api", "shipments", "calculate"] }
+          }
+        },
+        {
+          "name": "List calculations (paged)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('is a page', () => pm.expect(pm.response.json().data).to.have.property('totalElements'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/calculations?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "shipments", "calculations"],
+              "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

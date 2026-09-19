@@ -1,8 +1,7 @@
+### Profit: SHP-2026-0001 has 5300.00 of income against 3200.00 of costs
 POST http://localhost:8080/api/shipments/calculate
 Content-Type: application/json
 
 {
-  "income": 1000.00,
-  "cost": 200.00,
-  "additionalCost": 50.00
+  "shipmentReference": "SHP-2026-0001"
 }

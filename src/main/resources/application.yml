@@ -1,20 +1,28 @@
 spring:
 
+  # embedded in-memory database, so the project builds and runs with no external
+  # dependency; see application-mariadb.yml for the persistent alternative
   datasource:
-    url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:logisticsdb}
-    driver-class-name: org.mariadb.jdbc.Driver
-    username: ${DB_USERNAME:logistics}
-    password: ${DB_PASSWORD:logistics1pass}
+    url: jdbc:h2:mem:logisticsdb;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
 
   sql:
     init:
       mode: always
 
   jpa:
-    database-platform: org.hibernate.dialect.MariaDBDialect
+    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: none
-    show-sql: false
+    show-sql: true
+    open-in-view: false
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
 
 app:
 
@@ -27,5 +35,5 @@ app:
       - https://*.vercel.app
 
   jwt:
-    secret: ${JWT_SECRET}
+    secret: ${JWT_SECRET:dachser-logistics-super-secret-key-32-chars-min}
     expiration-ms: 28800000
