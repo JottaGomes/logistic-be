@@ -224,7 +224,7 @@ run dropdown with no setting up:
 
 | Configuration | What it gives you |
 |---|---|
-| **App** | the four shipments from `data.sql`, authentication on |
+| **App** | the app as configured: 10,000 shipments, authentication on |
 | **App with 10k shipments** | 10,000 generated shipments, authentication off |
 | **App with 10k shipments (persistent)** | the same, on disk, surviving restarts |
 
