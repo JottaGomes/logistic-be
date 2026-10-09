@@ -152,9 +152,10 @@ seed/         BulkDataSeeder - generated data for load testing, off by default
 mvn test
 ```
 
-54 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
+57 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
 recording amounts and rejecting bad ones, duplicate references, pagination and
-sorting, the security layer and the error handler.
+sorting and its size cap, the security layer and the error handler, including the
+retryable data retrieval error of alternative flow I.
 
 ## Testing the endpoints
 
@@ -303,7 +304,8 @@ confirm it.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `JWT_SECRET` | the development key in `application.yml` | key used to sign tokens |
+| `JWT_SECRET` | none: a random key per start, so tokens do not survive a restart | key used to sign tokens, at least 32 characters |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:4200` | comma-separated front-end origins allowed to call the API; wildcards such as `https://*.vercel.app` work |
 | `APP_SECURITY_ENABLE_LOGIN` | `true` | `false` bypasses authentication |
 | `DB_HOST` / `DB_PORT` / `DB_NAME` | `localhost` / `3306` / `logisticsdb` | MariaDB profile only |
 | `DB_USERNAME` / `DB_PASSWORD` | `logistics` / `logistics1pass` | MariaDB profile only |
@@ -319,4 +321,4 @@ confirm it.
 | Entities / Repositories / DTO / Mapper / Service / Controller | `src/main/java/...`; one controller for the use case, a second for administration |
 | Endpoint collection | `postman/`, plus `http/` |
 | Database question answers | [DATABASE_QUESTIONS.md](DATABASE_QUESTIONS.md) |
-| Unit tests (optional) | `mvn test`, 54 tests |
+| Unit tests (optional) | `mvn test`, 57 tests |

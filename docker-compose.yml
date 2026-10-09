@@ -34,7 +34,8 @@ services:
       DB_NAME: ${DB_NAME:-logisticsdb}
       DB_USERNAME: ${DB_USERNAME:-logistics}
       DB_PASSWORD: ${DB_PASSWORD:-logistics1pass}
-      JWT_SECRET: ${JWT_SECRET:-dachser-logistics-super-secret-key-32-chars-min}
+      JWT_SECRET: ${JWT_SECRET:-}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200}
     ports:
       - "8080:8333"
 

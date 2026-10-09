@@ -6,6 +6,11 @@ REGISTRY="192.168.1.3:5005"
 SERVER="adriano@192.168.1.3"
 
 deploy_backend() {
+  # Secrets and deployment-specific hosts are read from the caller's environment
+  # so they are never committed. Stop before building if either is missing.
+  : "${JWT_SECRET:?export JWT_SECRET (at least 32 characters) before deploying the backend}"
+  : "${CORS_ALLOWED_ORIGINS:?export CORS_ALLOWED_ORIGINS (comma-separated front-end origins) before deploying the backend}"
+
   echo "Building backend ..."
   #cd "$SCRIPT_DIR" && mvn clean package -DskipTests -q
 
@@ -23,7 +28,8 @@ deploy_backend() {
       -e SPRING_PROFILES_ACTIVE=prod \
       -e DB_USERNAME=logistics \
       -e DB_PASSWORD=logistics1pass \
-      -e JWT_SECRET=dachser-logistics-super-secret-key-32-chars-min \
+      -e JWT_SECRET='$JWT_SECRET' \
+      -e CORS_ALLOWED_ORIGINS='$CORS_ALLOWED_ORIGINS' \
       --network mariadb_cdc_default \
       -d -p 8333:8333 \
       --name dachser-backend \

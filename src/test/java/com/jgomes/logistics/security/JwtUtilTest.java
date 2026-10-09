@@ -67,4 +67,14 @@ class JwtUtilTest {
         assertThat(jwtUtil.extractUsername(tokenA)).isEqualTo("adriano");
         assertThat(jwtUtil.extractUsername(tokenB)).isEqualTo("dachser");
     }
+
+    @Test
+    void withoutAConfiguredSecret_stillIssuesTokensItCanVerify() {
+        JwtUtil randomKeyUtil = new JwtUtil("", EXPIRATION_MS);
+
+        String token = randomKeyUtil.generateToken("adriano");
+
+        assertThat(randomKeyUtil.isTokenValid(token)).isTrue();
+        assertThat(jwtUtil.isTokenValid(token)).isFalse();
+    }
 }
