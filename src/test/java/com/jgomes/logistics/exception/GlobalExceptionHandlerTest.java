@@ -3,6 +3,7 @@ package com.jgomes.logistics.exception;
 import com.jgomes.logistics.dto.ApiResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -77,5 +78,19 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody().success()).isFalse();
         assertThat(response.getBody().message()).isEqualTo("Internal server error");
         assertThat(response.getBody().data()).isNull();
+    }
+
+    @Test
+    void handleDataAccess_returnsServiceUnavailableAndAsksForRetry() {
+        DataAccessResourceFailureException ex = new DataAccessResourceFailureException("connection refused");
+
+        ResponseEntity<ApiResponse<Void>> response = handler.handleDataAccess(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+        Assertions.assertNotNull(response.getBody());
+        assertThat(response.getBody().success()).isFalse();
+        assertThat(response.getBody().message())
+                .isEqualTo("Could not retrieve the income and cost data. Please retry the request.");
+        assertThat(response.getBody().message()).doesNotContain("connection refused");
     }
 }
