@@ -104,6 +104,17 @@ class ProfitCalculationControllerTest {
     }
 
     @Test
+    void calculations_capsAnOversizedPageAndRejectsNegativeValues() {
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        when(service.findAll(isNull(), pageable.capture())).thenReturn(new PageImpl<>(List.of()));
+
+        controller.calculations(-3, 1_000_000, "calculatedAt", "desc", null);
+
+        assertThat(pageable.getValue().getPageNumber()).isZero();
+        assertThat(pageable.getValue().getPageSize()).isEqualTo(100);
+    }
+
+    @Test
     void calculations_passesTheSearchTermThrough() {
         when(service.findAll(eq("sonae"), any())).thenReturn(new PageImpl<>(List.of()));
 

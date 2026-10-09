@@ -26,6 +26,13 @@ import java.util.List;
 @RequestMapping("/api/shipments")
 public class ProfitCalculationController {
 
+    /**
+     * Largest page of stored calculations one request may return. Matches the
+     * shipment slice ceiling in ProfitCalculationService, so no endpoint's response
+     * size grows with the table.
+     */
+    private static final int MAX_PAGE_SIZE = 100;
+
     private final ProfitCalculationService service;
 
     public ProfitCalculationController(ProfitCalculationService service) {
@@ -60,7 +67,10 @@ public class ProfitCalculationController {
 
         Sort.Direction order = "asc".equalsIgnoreCase(direction) ? Sort.Direction.ASC : Sort.Direction.DESC;
 
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(order, sortProperty(sort)));
+        PageRequest pageable = PageRequest.of(
+                Math.max(page, 0),
+                Math.min(Math.max(size, 1), MAX_PAGE_SIZE),
+                Sort.by(order, sortProperty(sort)));
 
         return ResponseEntity.ok(ApiResponse.ok(service.findAll(search, pageable)));
     }
