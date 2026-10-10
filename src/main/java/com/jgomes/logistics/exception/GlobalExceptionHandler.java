@@ -3,6 +3,7 @@ package com.jgomes.logistics.exception;
 import com.jgomes.logistics.dto.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +39,27 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleDuplicateShipment(DuplicateShipmentException ex) {
         log.warn("duplicate_shipment message={}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(AmountLineNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAmountLineNotFound(AmountLineNotFoundException ex) {
+        log.warn("amount_line_not_found message={}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /**
+     * A correction based on a version that is no longer current.
+     * OptimisticLockingFailureException is also a DataAccessException; Spring picks
+     * the most specific handler, so a stale update becomes a 409 telling the caller
+     * to reload, not the 503 that asks them to retry the same request unchanged.
+     */
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ApiResponse<Void>> handleStaleUpdate(OptimisticLockingFailureException ex) {
+        log.warn("stale_update message={}", ex.getMessage());
+        String message = ex instanceof StaleAmountLineException
+                ? ex.getMessage()
+                : "The record was changed by someone else. Reload it and try again.";
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(message));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

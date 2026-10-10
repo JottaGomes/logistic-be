@@ -60,7 +60,7 @@ public class SecurityConfig {
 
         // patterns (not plain origins) so wildcard hosts work alongside allowCredentials
         config.setAllowedOriginPatterns(securityProperties.getCorsAllowedOrigins());
-        config.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);

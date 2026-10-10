@@ -1,0 +1,12 @@
+### Corrects a cost already recorded, with optimistic locking.
+### "version" is the one read from the shipment detail (shipment-detail.http).
+### Sending the same request twice answers 409 the second time: the first one
+### moved the version on, so the second is based on a value that is no longer current.
+PUT http://localhost:8080/api/shipments/SHP-2026-0001/costs/1
+Content-Type: application/json
+
+{
+  "amount": 3200.00,
+  "description": "Line haul, re-invoiced",
+  "version": 0
+}

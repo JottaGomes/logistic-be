@@ -1,5 +1,6 @@
 package com.jgomes.logistics.service;
 
+import com.jgomes.logistics.dto.CorrectAmountRequestDTO;
 import com.jgomes.logistics.dto.CreateShipmentRequestDTO;
 import com.jgomes.logistics.dto.RecordAmountRequestDTO;
 import com.jgomes.logistics.dto.ShipmentDetailDTO;
@@ -9,8 +10,10 @@ import com.jgomes.logistics.entity.CostType;
 import com.jgomes.logistics.entity.Income;
 import com.jgomes.logistics.entity.IncomeType;
 import com.jgomes.logistics.entity.Shipment;
+import com.jgomes.logistics.exception.AmountLineNotFoundException;
 import com.jgomes.logistics.exception.DuplicateShipmentException;
 import com.jgomes.logistics.exception.ShipmentNotFoundException;
+import com.jgomes.logistics.exception.StaleAmountLineException;
 import com.jgomes.logistics.mapper.ProfitCalculationMapper;
 import com.jgomes.logistics.repository.CostRepository;
 import com.jgomes.logistics.repository.IncomeRepository;
@@ -125,6 +128,58 @@ public class ShipmentAdministrationService {
 
         log.info("cost_recorded shipment={} type={} amount={}",
                 shipment.getReference(), request.getType(), request.getAmount());
+
+        return detail(shipment);
+    }
+
+    /**
+     * Corrects the amount of an income already recorded, with optimistic locking.
+     *
+     * @throws AmountLineNotFoundException when the income is not on this shipment
+     * @throws StaleAmountLineException    when it changed after the caller read it
+     */
+    @Transactional
+    public ShipmentDetailDTO correctIncome(String reference, Long incomeId, CorrectAmountRequestDTO request) {
+
+        Shipment shipment = require(reference);
+
+        int changed = incomeRepository.correctAmount(
+                incomeId, shipment.getId(), request.getAmount(), request.getDescription(), request.getVersion());
+
+        if (changed == 0) {
+            throw incomeRepository.existsByIdAndShipmentId(incomeId, shipment.getId())
+                    ? new StaleAmountLineException("income", incomeId)
+                    : new AmountLineNotFoundException("income", incomeId, shipment.getReference());
+        }
+
+        log.info("income_corrected shipment={} id={} amount={} basedOnVersion={}",
+                shipment.getReference(), incomeId, request.getAmount(), request.getVersion());
+
+        return detail(shipment);
+    }
+
+    /**
+     * Corrects the amount of a cost already recorded, with optimistic locking.
+     *
+     * @throws AmountLineNotFoundException when the cost is not on this shipment
+     * @throws StaleAmountLineException    when it changed after the caller read it
+     */
+    @Transactional
+    public ShipmentDetailDTO correctCost(String reference, Long costId, CorrectAmountRequestDTO request) {
+
+        Shipment shipment = require(reference);
+
+        int changed = costRepository.correctAmount(
+                costId, shipment.getId(), request.getAmount(), request.getDescription(), request.getVersion());
+
+        if (changed == 0) {
+            throw costRepository.existsByIdAndShipmentId(costId, shipment.getId())
+                    ? new StaleAmountLineException("cost", costId)
+                    : new AmountLineNotFoundException("cost", costId, shipment.getReference());
+        }
+
+        log.info("cost_corrected shipment={} id={} amount={} basedOnVersion={}",
+                shipment.getReference(), costId, request.getAmount(), request.getVersion());
 
         return detail(shipment);
     }

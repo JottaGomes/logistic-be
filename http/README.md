@@ -11,6 +11,7 @@ Recording data first, then evaluating it:
 | `record-income.http` | customer payment administration |
 | `record-cost.http` | operational cost administration |
 | `shipment-detail.http` | what is recorded, with running totals |
+| `correct-cost.http` | corrects an amount with optimistic locking; 409 when sent twice |
 | `list-shipments.http` | the shipments available to evaluate |
 | `calculate-profit.http` | main flow, result is a profit |
 | `calculate-loss.http` | main flow, result is a loss |

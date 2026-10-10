@@ -1,5 +1,6 @@
 package com.jgomes.logistics.service;
 
+import com.jgomes.logistics.dto.CorrectAmountRequestDTO;
 import com.jgomes.logistics.dto.CreateShipmentRequestDTO;
 import com.jgomes.logistics.dto.RecordAmountRequestDTO;
 import com.jgomes.logistics.dto.ShipmentResponseDTO;
@@ -8,8 +9,10 @@ import com.jgomes.logistics.entity.CostType;
 import com.jgomes.logistics.entity.Income;
 import com.jgomes.logistics.entity.IncomeType;
 import com.jgomes.logistics.entity.Shipment;
+import com.jgomes.logistics.exception.AmountLineNotFoundException;
 import com.jgomes.logistics.exception.DuplicateShipmentException;
 import com.jgomes.logistics.exception.ShipmentNotFoundException;
+import com.jgomes.logistics.exception.StaleAmountLineException;
 import com.jgomes.logistics.mapper.ProfitCalculationMapper;
 import com.jgomes.logistics.repository.CostRepository;
 import com.jgomes.logistics.repository.IncomeRepository;
@@ -173,5 +176,39 @@ class ShipmentAdministrationServiceTest {
         service.findShipments("  Sonae ", 20);
 
         verify(shipmentRepository).search(eq("%sonae%"), any());
+    }
+
+    private CorrectAmountRequestDTO correction() {
+        return new CorrectAmountRequestDTO(new BigDecimal("4350.00"), "Re-invoiced", 0L);
+    }
+
+    @Test
+    void correctIncome_withTheCurrentVersion_returnsTheUpdatedShipment() {
+        stubDetail();
+        when(incomeRepository.correctAmount(7L, 1L, new BigDecimal("4350.00"), "Re-invoiced", 0L)).thenReturn(1);
+
+        assertThat(service.correctIncome(REFERENCE, 7L, correction()).getReference()).isEqualTo(REFERENCE);
+    }
+
+    /** The row exists on this shipment but the update matched nothing: someone changed it first. */
+    @Test
+    void correctIncome_whenTheVersionIsStale_reportsAConflict() {
+        when(shipmentRepository.findByReference(REFERENCE)).thenReturn(Optional.of(shipment()));
+        when(incomeRepository.correctAmount(any(), any(), any(), any(), any())).thenReturn(0);
+        when(incomeRepository.existsByIdAndShipmentId(7L, 1L)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.correctIncome(REFERENCE, 7L, correction()))
+                .isInstanceOf(StaleAmountLineException.class);
+    }
+
+    @Test
+    void correctCost_whenTheLineIsNotOnTheShipment_reportsNotFound() {
+        when(shipmentRepository.findByReference(REFERENCE)).thenReturn(Optional.of(shipment()));
+        when(costRepository.correctAmount(any(), any(), any(), any(), any())).thenReturn(0);
+        when(costRepository.existsByIdAndShipmentId(7L, 1L)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.correctCost(REFERENCE, 7L, correction()))
+                .isInstanceOf(AmountLineNotFoundException.class)
+                .hasMessageContaining(REFERENCE);
     }
 }

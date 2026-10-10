@@ -1,6 +1,7 @@
 package com.jgomes.logistics.controller;
 
 import com.jgomes.logistics.dto.ApiResponse;
+import com.jgomes.logistics.dto.CorrectAmountRequestDTO;
 import com.jgomes.logistics.dto.CreateShipmentRequestDTO;
 import com.jgomes.logistics.dto.RecordAmountRequestDTO;
 import com.jgomes.logistics.dto.ShipmentDetailDTO;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -78,5 +80,28 @@ public class ShipmentAdministrationController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.ok(service.recordCost(reference, request)));
+    }
+
+    /**
+     * Corrects an income already recorded. 409 when the version sent is no longer
+     * the current one, so the caller reloads instead of overwriting a newer value.
+     */
+    @PutMapping("/{reference}/incomes/{id}")
+    public ResponseEntity<ApiResponse<ShipmentDetailDTO>> correctIncome(
+            @PathVariable String reference,
+            @PathVariable Long id,
+            @Valid @RequestBody CorrectAmountRequestDTO request) {
+
+        return ResponseEntity.ok(ApiResponse.ok(service.correctIncome(reference, id, request)));
+    }
+
+    /** Corrects a cost already recorded; same rules as an income correction. */
+    @PutMapping("/{reference}/costs/{id}")
+    public ResponseEntity<ApiResponse<ShipmentDetailDTO>> correctCost(
+            @PathVariable String reference,
+            @PathVariable Long id,
+            @Valid @RequestBody CorrectAmountRequestDTO request) {
+
+        return ResponseEntity.ok(ApiResponse.ok(service.correctCost(reference, id, request)));
     }
 }

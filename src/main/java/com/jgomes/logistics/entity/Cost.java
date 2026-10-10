@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -48,4 +49,13 @@ public class Cost {
 
     @Column(length = 255)
     private String description;
+
+    /**
+     * Incremented on every change. A correction names the version it was based on
+     * and is rejected when the row has moved on, so two people correcting the same
+     * amount cannot silently overwrite each other.
+     */
+    @Version
+    @Column(nullable = false)
+    private Long version;
 }

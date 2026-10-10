@@ -1,6 +1,8 @@
 package com.jgomes.logistics.controller;
 
 import com.jgomes.logistics.dto.ApiResponse;
+import com.jgomes.logistics.dto.CorrectAmountRequestDTO;
+import com.jgomes.logistics.dto.ShipmentDetailDTO;
 import com.jgomes.logistics.dto.ShipmentResponseDTO;
 import com.jgomes.logistics.service.ShipmentAdministrationService;
 import org.junit.jupiter.api.Assertions;
@@ -12,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,5 +50,18 @@ class ShipmentAdministrationControllerTest {
         controller.search("sonae", 5);
 
         verify(service).findShipments("sonae", 5);
+    }
+
+    @Test
+    void correctCost_answersOkWithTheUpdatedShipment() {
+        CorrectAmountRequestDTO request = new CorrectAmountRequestDTO(new BigDecimal("3200.00"), null, 0L);
+        ShipmentDetailDTO detail = new ShipmentDetailDTO();
+        when(service.correctCost("SHP-2026-0001", 1L, request)).thenReturn(detail);
+
+        ResponseEntity<ApiResponse<ShipmentDetailDTO>> response = controller.correctCost("SHP-2026-0001", 1L, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertNotNull(response.getBody());
+        assertThat(response.getBody().data()).isSameAs(detail);
     }
 }

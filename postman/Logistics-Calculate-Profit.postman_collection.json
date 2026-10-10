@@ -20,6 +20,14 @@
     {
       "key": "newShipment",
       "value": ""
+    },
+    {
+      "key": "costId",
+      "value": ""
+    },
+    {
+      "key": "costVersion",
+      "value": ""
     }
   ],
   "auth": {
@@ -896,7 +904,91 @@
                 "exec": [
                   "pm.test('200 OK', () => pm.response.to.have.status(200));",
                   "const d = pm.response.json().data;",
-                  "pm.test('carries both sets of lines', () => { pm.expect(d.incomes).to.have.lengthOf(2); pm.expect(d.costs).to.have.lengthOf(2); });"
+                  "pm.test('carries both sets of lines', () => { pm.expect(d.incomes).to.have.lengthOf(2); pm.expect(d.costs).to.have.lengthOf(2); });",
+                  "pm.collectionVariables.set('costId', d.costs[0].id); pm.collectionVariables.set('costVersion', d.costs[0].version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Correct cost (optimistic lock)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{newShipment}}/costs/{{costId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{newShipment}}",
+                "costs",
+                "{{costId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5400.0,\n  \"description\": \"Line haul, re-invoiced\",\n  \"version\": {{costVersion}}\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const line = pm.response.json().data.costs.find(c => c.id == pm.collectionVariables.get('costId'));",
+                  "pm.test('amount corrected and version bumped', () => { pm.expect(line.amount).to.eql(5400); pm.expect(line.version).to.eql(Number(pm.collectionVariables.get('costVersion')) + 1); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Correct cost - stale version (409)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{newShipment}}/costs/{{costId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{newShipment}}",
+                "costs",
+                "{{costId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 4900.0,\n  \"description\": \"Line haul, re-invoiced\",\n  \"version\": {{costVersion}}\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409 Conflict', () => pm.response.to.have.status(409));",
+                  "pm.test('asks to reload', () => pm.expect(pm.response.json().message).to.include('changed by someone else'));"
                 ]
               }
             }

@@ -4,6 +4,7 @@ import com.jgomes.logistics.dto.ApiResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -119,5 +120,34 @@ class GlobalExceptionHandlerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
         assertThat(response.getHeaders().getAllow()).containsExactly(HttpMethod.GET);
+    }
+
+    @Test
+    void handleStaleUpdate_returnsConflictWithTheReason() {
+        ResponseEntity<ApiResponse<Void>> response =
+                handler.handleStaleUpdate(new StaleAmountLineException("cost", 1L));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        Assertions.assertNotNull(response.getBody());
+        assertThat(response.getBody().message()).contains("cost with id 1 was changed by someone else");
+    }
+
+    /** Hibernate's own version conflicts are data access errors too, but must not become a 503. */
+    @Test
+    void handleStaleUpdate_coversConflictsRaisedByTheFramework() {
+        ResponseEntity<ApiResponse<Void>> response =
+                handler.handleStaleUpdate(new OptimisticLockingFailureException("Row was updated or deleted"));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        Assertions.assertNotNull(response.getBody());
+        assertThat(response.getBody().message()).doesNotContain("Row was updated");
+    }
+
+    @Test
+    void handleAmountLineNotFound_returnsNotFound() {
+        ResponseEntity<ApiResponse<Void>> response =
+                handler.handleAmountLineNotFound(new AmountLineNotFoundException("income", 9L, "SHP-2026-0001"));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 }

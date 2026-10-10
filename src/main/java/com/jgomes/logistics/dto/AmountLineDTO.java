@@ -16,4 +16,7 @@ public class AmountLineDTO {
     private String type;
     private BigDecimal amount;
     private String description;
+
+    /** Sent back unchanged with a correction, so a stale edit can be detected. */
+    private Long version;
 }

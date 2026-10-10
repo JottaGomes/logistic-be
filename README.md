@@ -70,6 +70,24 @@ and its own screen so the use case under assessment stays self-contained.
 | `GET` | `/api/shipments/{reference}` | required | What is recorded, with running totals |
 | `POST` | `/api/shipments/{reference}/incomes` | required | Records a customer payment or agent income |
 | `POST` | `/api/shipments/{reference}/costs` | required | Records an operational cost |
+| `PUT` | `/api/shipments/{reference}/incomes/{id}` | required | Corrects an income; `409` if it changed since it was read |
+| `PUT` | `/api/shipments/{reference}/costs/{id}` | required | Corrects a cost; `409` if it changed since it was read |
+
+A correction carries the `version` the caller read from the shipment detail, and
+is applied with one conditional statement:
+
+```sql
+UPDATE cost SET amount = ?, description = ?, version = version + 1
+ WHERE id = ? AND shipment_id = ? AND version = ?
+```
+
+If another correction landed first, the version no longer matches, no row
+changes and the caller gets `409` with a request to reload — two people
+correcting the same amount cannot silently overwrite each other. Checking and
+writing in one statement leaves no window between them, unlike reading the row
+and saving it back. Calculations already stored are left as they were: each is
+the outcome at the moment it was made, and the next calculation picks up the
+corrected amount.
 
 ### Evaluating it
 
@@ -159,8 +177,10 @@ seed/         BulkDataSeeder - generated data for load testing, off by default
 mvn test
 ```
 
-59 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
-recording amounts and rejecting bad ones, duplicate references, pagination and
+70 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
+recording amounts and rejecting bad ones, correcting them under optimistic locking
+(including the conditional UPDATE run against the database by
+`AmountCorrectionRepositoryTest`), duplicate references, pagination and
 sorting and its size cap, the security layer and the error handler, including the
 retryable data retrieval error of alternative flow I.
 
@@ -328,4 +348,4 @@ confirm it.
 | Entities / Repositories / DTO / Mapper / Service / Controller | `src/main/java/...`; one controller for the use case, a second for administration |
 | Endpoint collection | `postman/`, plus `http/` |
 | Database question answers | [DATABASE_QUESTIONS.md](DATABASE_QUESTIONS.md) |
-| Unit tests (optional) | `mvn test`, 59 tests |
+| Unit tests (optional) | `mvn test`, 70 tests |

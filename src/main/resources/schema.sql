@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS income (
     income_type  VARCHAR(20)    NOT NULL,
     amount       DECIMAL(12, 2) NOT NULL,
     description  VARCHAR(255),
+    version      BIGINT         NOT NULL DEFAULT 0,
     CONSTRAINT fk_income_shipment FOREIGN KEY (shipment_id) REFERENCES shipment (id)
 );
 
@@ -27,6 +28,7 @@ CREATE TABLE IF NOT EXISTS cost (
     cost_type    VARCHAR(20)    NOT NULL,
     amount       DECIMAL(12, 2) NOT NULL,
     description  VARCHAR(255),
+    version      BIGINT         NOT NULL DEFAULT 0,
     CONSTRAINT fk_cost_shipment FOREIGN KEY (shipment_id) REFERENCES shipment (id)
 );
 
@@ -40,6 +42,13 @@ CREATE TABLE IF NOT EXISTS profit_calculation (
     calculated_at  TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_calculation_shipment FOREIGN KEY (shipment_id) REFERENCES shipment (id)
 );
+
+-- Optimistic locking for amount corrections: a correction only applies when the
+-- row still carries the version the caller read. CREATE TABLE IF NOT EXISTS does
+-- not add columns to a table that already exists, so a persistent database (the
+-- h2-file and mariadb profiles) created before this column gets it here.
+ALTER TABLE income ADD COLUMN IF NOT EXISTS version BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE cost ADD COLUMN IF NOT EXISTS version BIGINT NOT NULL DEFAULT 0;
 
 -- the three queries that matter all filter or join on shipment_id
 CREATE INDEX IF NOT EXISTS idx_income_shipment ON income (shipment_id);

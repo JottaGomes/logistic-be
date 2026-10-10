@@ -68,7 +68,7 @@ amount is ever a float.
 
 ## 3. How would you ensure the accuracy and consistency of the profit data?
 
-Five things, all of them in the code:
+Six things, all of them in the code:
 
 **`DECIMAL` in the schema, `BigDecimal` in Java.** `Income.amount` and every
 other money field is `DECIMAL(12,2)` mapped to `BigDecimal`. A `double` cannot
@@ -94,6 +94,15 @@ yields zero instead of a null that would later blow up.
 **Constraints, not conventions.** `NOT NULL` on the amounts, foreign keys to
 `shipment`, and `UNIQUE` on `reference`. A bug in application code cannot leave an
 orphaned cost or a second shipment with the same reference.
+
+**Corrections cannot overwrite each other.** `income` and `cost` carry a
+`version` column (`@Version` on the entities). Correcting an amount
+(`PUT /api/shipments/{reference}/costs/{id}`) is one conditional `UPDATE ... SET
+version = version + 1 WHERE id = ? AND version = ?` (`CostRepository.correctAmount`).
+When someone else corrected the line first, the statement changes no row and the
+caller gets `409 Conflict` instead of silently replacing a newer amount. The check
+and the write are a single statement, so there is no gap between them to race
+in; `AmountCorrectionRepositoryTest` runs it against the database.
 
 And the calculation itself is covered by tests that assert the arithmetic, not
 just that a value came back — profit, loss, zero, and the unknown-shipment case
