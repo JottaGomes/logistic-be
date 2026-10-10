@@ -46,7 +46,7 @@ WHERE NOT EXISTS (SELECT 1 FROM profit_calculation);
 
 INSERT INTO users (username, password)
 SELECT * FROM (
-    SELECT 'adriano', '$2a$10$o8eEJ.i2U1LzX0Ys0pjroeIqRl/sRKewlQvkZnzLV.MdCQQUoWAPa'
+    SELECT 'tony211', '$2a$10$o8eEJ.i2U1LzX0Ys0pjroeIqRl/sRKewlQvkZnzLV.MdCQQUoWAPa'
     UNION ALL SELECT 'dachser', '$2a$10$NGEzy3scgS1L5nfq.x3o8.H5ChneJvtysDoJbMI0nzWMQ9KMkRMs.'
     UNION ALL SELECT 'joao', '$2y$10$FtIy9WdS32NSv.hL085tCunGuj421rNWNGhlGFGEZEia3hPp.jf4m'
 ) AS seed
