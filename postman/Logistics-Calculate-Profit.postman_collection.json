@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Logistics \u2014 Calculate Profit",
+    "name": "Logistics — Calculate Profit",
     "description": "Endpoint collection for the Calculate Profit use case.\n\nRun 'Login' first when authentication is enabled: it stores the JWT in the {{token}} collection variable, and every other request sends it automatically.\n\nWith APP_SECURITY_ENABLE_LOGIN=false the authenticated requests work without logging in.\n\nThe 'Record Data' folder walks the full path: create a shipment, record its incomes and costs, then calculate it. Run it in order.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -37,7 +37,7 @@
       "name": "Auth",
       "item": [
         {
-          "name": "Config \u2014 is login required?",
+          "name": "Config — is login required?",
           "request": {
             "method": "GET",
             "auth": {
@@ -144,7 +144,7 @@
           }
         },
         {
-          "name": "Login \u2014 wrong password (401)",
+          "name": "Login — wrong password (401)",
           "event": [
             {
               "listen": "test",
@@ -219,14 +219,14 @@
           }
         },
         {
-          "name": "Calculate \u2014 profit",
+          "name": "Calculate — profit",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
                   "const d = pm.response.json().data;",
                   "pm.test('profit = income - costs', () => pm.expect(d.profitOrLoss).to.eql(d.totalIncome - d.totalCosts));",
                   "pm.test('SHP-2026-0001 profits 2100', () => pm.expect(d.profitOrLoss).to.eql(2100));",
@@ -248,27 +248,26 @@
               "raw": "{\n  \"shipmentReference\": \"SHP-2026-0001\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/shipments/calculate",
+              "raw": "{{baseUrl}}/api/profit-calculations",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "shipments",
-                "calculate"
+                "profit-calculations"
               ]
             }
           }
         },
         {
-          "name": "Calculate \u2014 loss",
+          "name": "Calculate — loss",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
                   "pm.test('SHP-2026-0004 loses 1500', () => pm.expect(pm.response.json().data.profitOrLoss).to.eql(-1500));"
                 ]
               }
@@ -287,20 +286,19 @@
               "raw": "{\n  \"shipmentReference\": \"SHP-2026-0004\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/shipments/calculate",
+              "raw": "{{baseUrl}}/api/profit-calculations",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "shipments",
-                "calculate"
+                "profit-calculations"
               ]
             }
           }
         },
         {
-          "name": "Calculate \u2014 unknown shipment (404)",
+          "name": "Calculate — unknown shipment (404)",
           "event": [
             {
               "listen": "test",
@@ -326,20 +324,19 @@
               "raw": "{\n  \"shipmentReference\": \"SHP-2026-9999\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/shipments/calculate",
+              "raw": "{{baseUrl}}/api/profit-calculations",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "shipments",
-                "calculate"
+                "profit-calculations"
               ]
             }
           }
         },
         {
-          "name": "Calculate \u2014 blank reference (400)",
+          "name": "Calculate — blank reference (400)",
           "event": [
             {
               "listen": "test",
@@ -364,14 +361,13 @@
               "raw": "{\n  \"shipmentReference\": \"\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/shipments/calculate",
+              "raw": "{{baseUrl}}/api/profit-calculations",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "shipments",
-                "calculate"
+                "profit-calculations"
               ]
             }
           }
@@ -393,14 +389,13 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/api/shipments/calculations?page=0&size=10",
+              "raw": "{{baseUrl}}/api/profit-calculations?page=0&size=10",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "shipments",
-                "calculations"
+                "profit-calculations"
               ],
               "query": [
                 {
@@ -433,14 +428,13 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/api/shipments/calculations?search=sonae",
+              "raw": "{{baseUrl}}/api/profit-calculations?search=sonae",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "shipments",
-                "calculations"
+                "profit-calculations"
               ],
               "query": [
                 {
@@ -469,14 +463,13 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/api/shipments/calculations?sort=profitOrLoss&direction=asc",
+              "raw": "{{baseUrl}}/api/profit-calculations?sort=profitOrLoss&direction=asc",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "shipments",
-                "calculations"
+                "profit-calculations"
               ],
               "query": [
                 {
@@ -920,14 +913,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/shipments/calculate",
+              "raw": "{{baseUrl}}/api/profit-calculations",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "shipments",
-                "calculate"
+                "profit-calculations"
               ]
             },
             "body": {
@@ -941,7 +933,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
                   "pm.test('7450 - 5580 = 1870', () => pm.expect(pm.response.json().data.profitOrLoss).to.eql(1870));"
                 ]
               }

@@ -110,7 +110,7 @@ the rows for one shipment, via the index on `shipment_id`. It never loads a
 collection into memory, so a shipment with 3 income rows and one with 300 cost the
 same order of time.
 
-**Never return an unbounded list.** `/api/shipments/calculations` is paged
+**Never return an unbounded list.** `/api/profit-calculations` is paged
 (`Page<ProfitCalculation>`, `PageRequest`), so the response size is fixed
 regardless of how much history exists. The sort column is indexed, so the database
 does not sort millions of rows to return ten.

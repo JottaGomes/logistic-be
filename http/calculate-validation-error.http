@@ -1,5 +1,5 @@
 ### A blank reference never reaches the service: 400 from bean validation
-POST http://localhost:8080/api/shipments/calculate
+POST http://localhost:8080/api/profit-calculations
 Content-Type: application/json
 
 {

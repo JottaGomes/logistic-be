@@ -1,5 +1,5 @@
 ### Alternative flow I: the shipment does not exist, so the request fails with 404
-POST http://localhost:8080/api/shipments/calculate
+POST http://localhost:8080/api/profit-calculations
 Content-Type: application/json
 
 {

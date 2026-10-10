@@ -1,5 +1,5 @@
 ### Loss: SHP-2026-0004 has 3000.00 of income against 4500.00 of costs
-POST http://localhost:8080/api/shipments/calculate
+POST http://localhost:8080/api/profit-calculations
 Content-Type: application/json
 
 {

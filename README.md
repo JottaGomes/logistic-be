@@ -76,21 +76,26 @@ and its own screen so the use case under assessment stays self-contained.
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | `GET` | `/api/shipments` | required | Shipments to evaluate; `search` and `limit`, capped at 100 |
-| `POST` | `/api/shipments/calculate` | required | Calculates and stores profit or loss |
-| `GET` | `/api/shipments/calculations` | required | Stored calculations, paged, sorted and filtered |
+| `POST` | `/api/profit-calculations` | required | Calculates and stores profit or loss; `201` with the result |
+| `GET` | `/api/profit-calculations` | required | Stored calculations, paged, sorted and filtered |
 
-`/api/shipments/calculations` takes `page`, `size`, `sort`, `direction` and
+`/api/profit-calculations` takes `page`, `size`, `sort`, `direction` and
 `search`. Sorting and filtering are done in the database rather than the browser,
 because only one page is ever loaded — filtering client-side would silently ignore
 every match on another page. `sort` is matched against a fixed set of columns, so
 an unexpected value falls back to the date instead of reaching the persistence
 layer.
+
+A profit calculation is a resource of its own rather than a sub-path of
+`/api/shipments`: the listing spans every shipment, and each calculation is a
+stored, point-in-time outcome, so `POST` to the collection performs one and
+creates it. Each controller therefore owns one base path.
 | `POST` | `/api/auth/login` | public | Returns a JWT |
 | `POST` | `/api/auth/register` | public | Creates an account, returns a JWT |
 | `GET` | `/api/auth/config` | public | Whether login is enabled |
 
 ```bash
-curl -X POST http://localhost:8080/api/shipments/calculate \
+curl -X POST http://localhost:8080/api/profit-calculations \
   -H 'Content-Type: application/json' \
   -d '{"shipmentReference":"SHP-2026-0001"}'
 ```
@@ -110,7 +115,8 @@ curl -X POST http://localhost:8080/api/shipments/calculate \
 }
 ```
 
-Errors: unknown shipment → `404`; blank reference → `400`. Both are logged before
+Errors: unknown shipment → `404`; blank reference → `400`; income or cost data
+that cannot be read → `503`, which asks the caller to retry. All are logged before
 the caller is told, which is alternative flow I in the use case document.
 
 ## Data model
@@ -138,9 +144,10 @@ repository/   Spring Data interfaces; SUM aggregation lives here
 dto/          request and response objects; entities never leave the service
 mapper/       MapStruct, entity <-> DTO
 service/      ProfitCalculationService - the use case
-              ShipmentAdministrationService - recording the data it reads
-controller/   ProfitCalculationController - the Calculate Profit use case
-              ShipmentAdministrationController - payment and cost administration
+              ShipmentAdministrationService - shipment search, and recording the data it reads
+controller/   ProfitCalculationController - /api/profit-calculations, the use case
+              ShipmentAdministrationController - /api/shipments, search and
+              payment and cost administration
 security/     JWT filter, token utility, security configuration
 exception/    GlobalExceptionHandler and ShipmentNotFoundException
 seed/         BulkDataSeeder - generated data for load testing, off by default
@@ -152,7 +159,7 @@ seed/         BulkDataSeeder - generated data for load testing, off by default
 mvn test
 ```
 
-57 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
+59 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
 recording amounts and rejecting bad ones, duplicate references, pagination and
 sorting and its size cap, the security layer and the error handler, including the
 retryable data retrieval error of alternative flow I.
@@ -271,11 +278,11 @@ of five calls each.
 
 | Operation | Time | Response |
 |---|---|---|
-| `POST /calculate` one shipment | 109 ms | — |
-| `GET /calculations` first page | 26 ms | 2.4 kB |
-| `GET /calculations` page 500 | 15 ms | 2.4 kB |
-| `GET /calculations` sorted by profit | 14 ms | 2.4 kB |
-| `GET /calculations` filtered | 12 ms | 2.4 kB |
+| `POST /profit-calculations` one shipment | 109 ms | — |
+| `GET /profit-calculations` first page | 26 ms | 2.4 kB |
+| `GET /profit-calculations` page 500 | 15 ms | 2.4 kB |
+| `GET /profit-calculations` sorted by profit | 14 ms | 2.4 kB |
+| `GET /profit-calculations` filtered | 12 ms | 2.4 kB |
 | `GET /shipments` | 12 ms | 1.3 kB |
 
 **NFR1** (calculate within 0.5 minutes) — met with room to spare: 109 ms against a
@@ -321,4 +328,4 @@ confirm it.
 | Entities / Repositories / DTO / Mapper / Service / Controller | `src/main/java/...`; one controller for the use case, a second for administration |
 | Endpoint collection | `postman/`, plus `http/` |
 | Database question answers | [DATABASE_QUESTIONS.md](DATABASE_QUESTIONS.md) |
-| Unit tests (optional) | `mvn test`, 57 tests |
+| Unit tests (optional) | `mvn test`, 59 tests |

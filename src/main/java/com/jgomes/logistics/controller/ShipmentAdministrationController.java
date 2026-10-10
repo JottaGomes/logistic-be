@@ -14,13 +14,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
- * Customer payment and operational cost administration (requirements 1.4).
+ * Shipments, and the customer payment and operational cost administration
+ * recorded against them (requirements 1.4).
  *
  * Kept apart from {@link ProfitCalculationController}, which exposes the Calculate
- * Profit use case: this one only records the data that use case pre-supposes.
+ * Profit use case: this one finds shipments and records the income and cost data
+ * that use case pre-supposes.
  */
 @RestController
 @RequestMapping("/api/shipments")
@@ -30,6 +35,18 @@ public class ShipmentAdministrationController {
 
     public ShipmentAdministrationController(ShipmentAdministrationService service) {
         this.service = service;
+    }
+
+    /**
+     * The shipments the Finance Department can ask to evaluate: a bounded slice,
+     * narrowed by {@code search}, so the response size does not grow with the table.
+     */
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<ShipmentResponseDTO>>> search(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "20") int limit) {
+
+        return ResponseEntity.ok(ApiResponse.ok(service.findShipments(search, limit)));
     }
 
     @PostMapping

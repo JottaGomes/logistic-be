@@ -3,13 +3,13 @@ package com.jgomes.logistics.controller;
 import com.jgomes.logistics.dto.ApiResponse;
 import com.jgomes.logistics.dto.CalculateProfitRequestDTO;
 import com.jgomes.logistics.dto.ProfitCalculationResponseDTO;
-import com.jgomes.logistics.dto.ShipmentResponseDTO;
 import com.jgomes.logistics.service.ProfitCalculationService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,18 +18,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
-/** The single controller exposed for the Calculate Profit use case. */
+/**
+ * The single controller exposed for the Calculate Profit use case.
+ *
+ * A profit calculation is its own resource rather than a sub-resource of a
+ * shipment: the listing spans every shipment, and each calculation is a stored,
+ * point-in-time outcome. Posting to the collection performs the calculation and
+ * creates one.
+ */
 @Slf4j
 @RestController
-@RequestMapping("/api/shipments")
+@RequestMapping("/api/profit-calculations")
 public class ProfitCalculationController {
 
     /**
      * Largest page of stored calculations one request may return. Matches the
-     * shipment slice ceiling in ProfitCalculationService, so no endpoint's response
-     * size grows with the table.
+     * shipment search ceiling in ShipmentAdministrationService, so no endpoint's
+     * response size grows with the table.
      */
     private static final int MAX_PAGE_SIZE = 100;
 
@@ -39,25 +44,13 @@ public class ProfitCalculationController {
         this.service = service;
     }
 
-    /**
-     * The shipments the Finance Department can ask to evaluate: a bounded slice,
-     * narrowed by {@code search}, so the response size does not grow with the table.
-     */
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<ShipmentResponseDTO>>> shipments(
-            @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "20") int limit) {
-
-        return ResponseEntity.ok(ApiResponse.ok(service.findShipments(search, limit)));
-    }
-
-    @PostMapping("/calculate")
+    @PostMapping
     public ResponseEntity<ApiResponse<ProfitCalculationResponseDTO>> calculate(
             @Valid @RequestBody CalculateProfitRequestDTO request) {
-        return ResponseEntity.ok(ApiResponse.ok(service.calculate(request)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(service.calculate(request)));
     }
 
-    @GetMapping("/calculations")
+    @GetMapping
     public ResponseEntity<ApiResponse<Page<ProfitCalculationResponseDTO>>> calculations(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
