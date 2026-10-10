@@ -4,7 +4,11 @@ import com.jgomes.logistics.dto.ApiResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.mock.http.MockHttpInputMessage;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -92,5 +96,28 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody().message())
                 .isEqualTo("Could not retrieve the income and cost data. Please retry the request.");
         assertThat(response.getBody().message()).doesNotContain("connection refused");
+    }
+
+    @Test
+    void handleUnreadableBody_returnsBadRequestInsteadOfServerError() {
+        HttpMessageNotReadableException ex = new HttpMessageNotReadableException(
+                "JSON parse error", new MockHttpInputMessage(new byte[0]));
+
+        ResponseEntity<ApiResponse<Void>> response = handler.handleUnreadableBody(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        Assertions.assertNotNull(response.getBody());
+        assertThat(response.getBody().message()).isEqualTo("Malformed request body");
+    }
+
+    @Test
+    void handleMethodNotSupported_returnsMethodNotAllowedWithTheAllowHeader() {
+        HttpRequestMethodNotSupportedException ex =
+                new HttpRequestMethodNotSupportedException("POST", List.of("GET"));
+
+        ResponseEntity<ApiResponse<Void>> response = handler.handleMethodNotSupported(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
+        assertThat(response.getHeaders().getAllow()).containsExactly(HttpMethod.GET);
     }
 }

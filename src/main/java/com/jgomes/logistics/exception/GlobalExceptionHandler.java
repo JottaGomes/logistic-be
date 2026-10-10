@@ -3,12 +3,17 @@ package com.jgomes.logistics.exception;
 import com.jgomes.logistics.dto.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -38,6 +43,36 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException ex) {
         return ResponseEntity.badRequest().body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /**
+     * A body that is not valid JSON, or does not fit the request object, is the
+     * caller's mistake; without this handler it would fall through to the catch-all
+     * and be reported as a server error.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUnreadableBody(HttpMessageNotReadableException ex) {
+        return ResponseEntity.badRequest().body(ApiResponse.error("Malformed request body"));
+    }
+
+    /** A query or path parameter of the wrong type, such as {@code size=abc}. */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        return ResponseEntity.badRequest().body(ApiResponse.error("Invalid value for parameter '" + ex.getName() + "'"));
+    }
+
+    /**
+     * A known path called with a verb it does not support, for example a POST to
+     * /api/shipments/{reference}. Answered with 405 and the Allow header rather
+     * than a 500 from the catch-all.
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        Set<HttpMethod> supported = ex.getSupportedHttpMethods();
+
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .allow(supported == null ? new HttpMethod[0] : supported.toArray(HttpMethod[]::new))
+                .body(ApiResponse.error(ex.getMessage()));
     }
 
     /**
