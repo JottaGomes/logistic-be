@@ -332,7 +332,7 @@ confirm it.
 | Variable | Default | Purpose |
 |---|---|---|
 | `JWT_SECRET` | none: a random key per start, so tokens do not survive a restart | key used to sign tokens, at least 32 characters |
-| `CORS_ALLOWED_ORIGINS` | `http://localhost:4200` | comma-separated front-end origins allowed to call the API; wildcards such as `https://*.vercel.app` work |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:4200,https://*.vercel.app` | comma-separated front-end origins allowed to call the API; wildcards such as `https://*.vercel.app` work |
 | `APP_SECURITY_ENABLE_LOGIN` | `true` | `false` bypasses authentication |
 | `DB_HOST` / `DB_PORT` / `DB_NAME` | `localhost` / `3306` / `logisticsdb` | MariaDB profile only |
 | `DB_USERNAME` / `DB_PASSWORD` | `logistics` / `logistics1pass` | MariaDB profile only |
