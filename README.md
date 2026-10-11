@@ -94,7 +94,7 @@ corrected amount.
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | `GET` | `/api/shipments` | required | Shipments to evaluate; `search` and `limit`, capped at 100 |
-| `POST` | `/api/profit-calculations` | required | Calculates and stores profit or loss; `201` with the result |
+| `POST` | `/api/profit-calculations` | required | Calculates and stores profit or loss; `201` with the result, or `200` with the existing one if nothing changed |
 | `GET` | `/api/profit-calculations` | required | Stored calculations, paged, sorted and filtered |
 
 `/api/profit-calculations` takes `page`, `size`, `sort`, `direction` and
@@ -108,6 +108,13 @@ A profit calculation is a resource of its own rather than a sub-path of
 `/api/shipments`: the listing spans every shipment, and each calculation is a
 stored, point-in-time outcome, so `POST` to the collection performs one and
 creates it. Each controller therefore owns one base path.
+
+A calculation whose totals equal the shipment's latest stored calculation is not
+stored again: that calculation comes back with `200` and `"created": false`, so
+repeating the request without changing an amount never adds rows. The shipment
+row is locked (`SELECT ... FOR UPDATE`) for the length of the calculation, so two
+simultaneous requests for the same shipment cannot both decide the result is new;
+requests for different shipments are not held up.
 | `POST` | `/api/auth/login` | public | Returns a JWT |
 | `POST` | `/api/auth/register` | public | Creates an account, returns a JWT |
 | `GET` | `/api/auth/config` | public | Whether login is enabled |
@@ -214,8 +221,9 @@ seed/         BulkDataSeeder - generated data for load testing, off by default
 mvn test
 ```
 
-84 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
-recording amounts and rejecting bad ones, correcting them under optimistic locking
+89 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
+recording amounts and rejecting bad ones, not storing a calculation that repeats
+the latest one (`ProfitCalculationDeduplicationTest`, against the database), correcting them under optimistic locking
 (including the conditional UPDATE run against the database by
 `AmountCorrectionRepositoryTest`), duplicate references, pagination and
 sorting and its size cap, the security layer and the error handler, including the
@@ -388,4 +396,4 @@ confirm it.
 | Entities / Repositories / DTO / Mapper / Service / Controller | `src/main/java/...`; one controller for the use case, a second for administration |
 | Endpoint collection | `postman/`, plus `http/` |
 | Database question answers | [DATABASE_QUESTIONS.md](DATABASE_QUESTIONS.md) |
-| Unit tests (optional) | `mvn test`, 84 tests |
+| Unit tests (optional) | `mvn test`, 89 tests |

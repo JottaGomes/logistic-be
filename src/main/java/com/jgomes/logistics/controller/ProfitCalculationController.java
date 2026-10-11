@@ -44,10 +44,19 @@ public class ProfitCalculationController {
         this.service = service;
     }
 
+    /**
+     * 201 when a new calculation was stored; 200 when nothing changed since the
+     * shipment's latest calculation and that one is returned. Repeating the request
+     * without changing any amount therefore never adds rows.
+     */
     @PostMapping
     public ResponseEntity<ApiResponse<ProfitCalculationResponseDTO>> calculate(
             @Valid @RequestBody CalculateProfitRequestDTO request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(service.calculate(request)));
+
+        ProfitCalculationResponseDTO result = service.calculate(request);
+        HttpStatus status = Boolean.TRUE.equals(result.getCreated()) ? HttpStatus.CREATED : HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(ApiResponse.ok(result));
     }
 
     @GetMapping

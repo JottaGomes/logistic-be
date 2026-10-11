@@ -234,7 +234,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "// 200 when the seeded calculation already matches the recorded amounts, 201 when a new one is stored\npm.test('200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
                   "const d = pm.response.json().data;",
                   "pm.test('profit = income - costs', () => pm.expect(d.profitOrLoss).to.eql(d.totalIncome - d.totalCosts));",
                   "pm.test('SHP-2026-0001 profits 2100', () => pm.expect(d.profitOrLoss).to.eql(2100));",
@@ -275,7 +275,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "// 200 when the seeded calculation already matches the recorded amounts, 201 when a new one is stored\npm.test('200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
                   "pm.test('SHP-2026-0004 loses 1500', () => pm.expect(pm.response.json().data.profitOrLoss).to.eql(-1500));"
                 ]
               }

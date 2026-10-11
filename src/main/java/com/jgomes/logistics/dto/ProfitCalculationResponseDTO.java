@@ -22,6 +22,13 @@ public class ProfitCalculationResponseDTO {
     private BigDecimal profitOrLoss;
     private LocalDateTime calculatedAt;
 
+    /**
+     * Set by a calculation request only: true when a new calculation was stored,
+     * false when the totals matched the shipment's latest calculation and that one
+     * was returned instead. Null when listing history.
+     */
+    private Boolean created;
+
     /** Only populated on a fresh calculation, not when listing history. */
     private List<AmountLineDTO> incomes;
     private List<AmountLineDTO> costs;

@@ -24,6 +24,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -56,10 +57,11 @@ class ProfitCalculationServiceTest {
     }
 
     private void stubCalculation(BigDecimal income, BigDecimal costs) {
-        when(shipmentRepository.findByReference(REFERENCE)).thenReturn(Optional.of(shipment()));
+        when(shipmentRepository.findByReferenceForUpdate(REFERENCE)).thenReturn(Optional.of(shipment()));
         when(incomeRepository.sumAmountByShipmentId(1L)).thenReturn(income);
         when(costRepository.sumAmountByShipmentId(1L)).thenReturn(costs);
-        when(calculationRepository.save(any())).thenAnswer(call -> call.getArgument(0));
+        // lenient: a calculation that matches the latest stored one never saves
+        lenient().when(calculationRepository.save(any())).thenAnswer(call -> call.getArgument(0));
         when(mapper.toResponseDTO(any())).thenReturn(new ProfitCalculationResponseDTO());
         when(incomeRepository.findByShipmentId(1L)).thenReturn(List.of());
         when(costRepository.findByShipmentId(1L)).thenReturn(List.of());
@@ -106,17 +108,49 @@ class ProfitCalculationServiceTest {
 
         service.calculate(new CalculateProfitRequestDTO("  " + REFERENCE + "  "));
 
-        verify(shipmentRepository).findByReference(REFERENCE);
+        verify(shipmentRepository).findByReferenceForUpdate(REFERENCE);
     }
 
     @Test
     void calculate_withUnknownShipment_throwsAndSavesNothing() {
-        when(shipmentRepository.findByReference("SHP-NOPE")).thenReturn(Optional.empty());
+        when(shipmentRepository.findByReferenceForUpdate("SHP-NOPE")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.calculate(new CalculateProfitRequestDTO("SHP-NOPE")))
                 .isInstanceOf(ShipmentNotFoundException.class)
                 .hasMessageContaining("SHP-NOPE");
 
         verify(calculationRepository, never()).save(any());
+    }
+
+    /** Same totals as the latest stored calculation: that one comes back and no row is added. */
+    @Test
+    void calculate_whenNothingChanged_returnsTheLatestCalculationWithoutStoringAnother() {
+        stubCalculation(new BigDecimal("5300.00"), new BigDecimal("3200.00"));
+        ProfitCalculation latest = ProfitCalculation.builder()
+                .id(9L).shipment(shipment())
+                .totalIncome(new BigDecimal("5300.0")).totalCosts(new BigDecimal("3200"))
+                .profitOrLoss(new BigDecimal("2100.00")).build();
+        when(calculationRepository.findFirstByShipmentIdOrderByIdDesc(1L)).thenReturn(Optional.of(latest));
+
+        ProfitCalculationResponseDTO response = service.calculate(new CalculateProfitRequestDTO(REFERENCE));
+
+        verify(calculationRepository, never()).save(any());
+        verify(mapper).toResponseDTO(latest);
+        assertThat(response.getCreated()).isFalse();
+    }
+
+    @Test
+    void calculate_whenATotalChanged_storesANewCalculation() {
+        stubCalculation(new BigDecimal("5400.00"), new BigDecimal("3200.00"));
+        ProfitCalculation latest = ProfitCalculation.builder()
+                .id(9L).shipment(shipment())
+                .totalIncome(new BigDecimal("5300.00")).totalCosts(new BigDecimal("3200.00"))
+                .profitOrLoss(new BigDecimal("2100.00")).build();
+        when(calculationRepository.findFirstByShipmentIdOrderByIdDesc(1L)).thenReturn(Optional.of(latest));
+
+        ProfitCalculationResponseDTO response = service.calculate(new CalculateProfitRequestDTO(REFERENCE));
+
+        verify(calculationRepository).save(any());
+        assertThat(response.getCreated()).isTrue();
     }
 }

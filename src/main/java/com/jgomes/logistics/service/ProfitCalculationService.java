@@ -60,8 +60,10 @@ public class ProfitCalculationService {
 
         String reference = request.getShipmentReference().trim();
 
-        // step 1: the request names a shipment that must already exist
-        Shipment shipment = shipmentRepository.findByReference(reference)
+        // step 1: the request names a shipment that must already exist. Its row stays
+        // locked until the end of the transaction, so two simultaneous requests for the
+        // same shipment cannot both decide the result is new and store it twice.
+        Shipment shipment = shipmentRepository.findByReferenceForUpdate(reference)
                 .orElseThrow(() -> new ShipmentNotFoundException(reference));
 
         // steps 2 and 3: retrieve what was recorded, summed in the database
@@ -71,8 +73,18 @@ public class ProfitCalculationService {
         // step 4: Profit or Loss = Total Income - Total Costs
         BigDecimal profitOrLoss = totalIncome.subtract(totalCosts);
 
-        // step 5: store the outcome
-        ProfitCalculation saved = calculationRepository.save(ProfitCalculation.builder()
+        // step 5: store the outcome, unless it is the one already stored. When the
+        // totals equal those of the shipment's latest calculation, a new row would
+        // repeat it without adding information, so that calculation is returned.
+        // compareTo rather than equals: 100.0 and 100.00 are the same amount.
+        ProfitCalculation latest = calculationRepository.findFirstByShipmentIdOrderByIdDesc(shipment.getId())
+                .orElse(null);
+
+        boolean unchanged = latest != null
+                && latest.getTotalIncome().compareTo(totalIncome) == 0
+                && latest.getTotalCosts().compareTo(totalCosts) == 0;
+
+        ProfitCalculation result = unchanged ? latest : calculationRepository.save(ProfitCalculation.builder()
                 .shipment(shipment)
                 .totalIncome(totalIncome)
                 .totalCosts(totalCosts)
@@ -80,11 +92,13 @@ public class ProfitCalculationService {
                 .calculatedBy(currentUsername())
                 .build());
 
-        log.info("calculation_saved shipment={} totalIncome={} totalCosts={} profitOrLoss={}",
+        log.info("{} shipment={} totalIncome={} totalCosts={} profitOrLoss={}",
+                unchanged ? "calculation_unchanged" : "calculation_saved",
                 reference, totalIncome, totalCosts, profitOrLoss);
 
         // step 6: hand it back, with the lines it was derived from
-        ProfitCalculationResponseDTO response = mapper.toResponseDTO(saved);
+        ProfitCalculationResponseDTO response = mapper.toResponseDTO(result);
+        response.setCreated(!unchanged);
 
         List<Income> incomes = incomeRepository.findByShipmentId(shipment.getId());
         List<Cost> costs = costRepository.findByShipmentId(shipment.getId());

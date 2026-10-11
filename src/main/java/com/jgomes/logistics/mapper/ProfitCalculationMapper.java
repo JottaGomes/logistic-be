@@ -23,6 +23,7 @@ public interface ProfitCalculationMapper {
     @Mapping(target = "customer", source = "shipment.customer")
     @Mapping(target = "incomes", ignore = true)
     @Mapping(target = "costs", ignore = true)
+    @Mapping(target = "created", ignore = true)
     ProfitCalculationResponseDTO toResponseDTO(ProfitCalculation entity);
 
     @Mapping(target = "type", source = "incomeType")

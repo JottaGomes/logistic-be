@@ -43,6 +43,7 @@ class ProfitCalculationControllerTest {
         ProfitCalculationResponseDTO dto = new ProfitCalculationResponseDTO();
         dto.setShipmentReference("SHP-2026-0001");
         dto.setProfitOrLoss(new BigDecimal("2100.00"));
+        dto.setCreated(true);
         when(service.calculate(any())).thenReturn(dto);
 
         ResponseEntity<ApiResponse<ProfitCalculationResponseDTO>> response =
@@ -52,6 +53,18 @@ class ProfitCalculationControllerTest {
         Assertions.assertNotNull(response.getBody());
         assertThat(response.getBody().success()).isTrue();
         assertThat(response.getBody().data().getProfitOrLoss()).isEqualByComparingTo("2100.00");
+    }
+
+    @Test
+    void calculate_whenNothingChanged_answersOkInsteadOfCreated() {
+        ProfitCalculationResponseDTO dto = new ProfitCalculationResponseDTO();
+        dto.setCreated(false);
+        when(service.calculate(any())).thenReturn(dto);
+
+        ResponseEntity<ApiResponse<ProfitCalculationResponseDTO>> response =
+                controller.calculate(new CalculateProfitRequestDTO("SHP-2026-0001"));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test

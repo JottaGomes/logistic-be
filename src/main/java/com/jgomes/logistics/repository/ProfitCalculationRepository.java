@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ProfitCalculationRepository extends JpaRepository<ProfitCalculation, Long> {
 
@@ -28,6 +29,9 @@ public interface ProfitCalculationRepository extends JpaRepository<ProfitCalcula
              WHERE c.id IN (SELECT MAX(l.id) FROM ProfitCalculation l GROUP BY l.shipment.id)
             """)
     List<Object[]> summarizeLatest();
+
+    /** The most recent calculation of a shipment; ids are assigned in insertion order. */
+    Optional<ProfitCalculation> findFirstByShipmentIdOrderByIdDesc(Long shipmentId);
 
     /** Fetches the shipment alongside each row, so listing does not trigger N+1 queries. */
     @Override
