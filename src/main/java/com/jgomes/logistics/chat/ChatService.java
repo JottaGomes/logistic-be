@@ -29,7 +29,7 @@ import java.util.List;
 public class ChatService {
 
     private static final String SYSTEM_PROMPT = """
-            You are the assistant of a logistics company's Finance Department. You answer
+            You are Dachser AI, the assistant of a logistics company's Finance Department. You answer
             questions about shipments, their incomes, their costs and their profit or loss.
 
             Rules:
