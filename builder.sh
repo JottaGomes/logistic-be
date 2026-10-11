@@ -3,6 +3,17 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# The Angular front end is its own repository (github.com/JottaGomes/logistic).
+# Point FRONTEND_DIR at its clone; by default it is expected next to this one.
+FRONTEND_DIR="${FRONTEND_DIR:-$SCRIPT_DIR/../logistics-frontend}"
+
+require_frontend() {
+  if [ ! -f "$FRONTEND_DIR/package.json" ]; then
+    echo "Front end not found at $FRONTEND_DIR. Clone github.com/JottaGomes/logistic there, or set FRONTEND_DIR." >&2
+    exit 1
+  fi
+}
+
 build_backend() {
   echo "Building backend..."
   cd "$SCRIPT_DIR" && mvn clean package -DskipTests
@@ -10,7 +21,8 @@ build_backend() {
 
 build_frontend() {
   echo "Building frontend..."
-  cd "$SCRIPT_DIR/frontend" && npm install && npm run build
+  require_frontend
+  cd "$FRONTEND_DIR" && npm install && npm run build
 }
 
 case "${1:-all}" in

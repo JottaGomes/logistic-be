@@ -68,7 +68,7 @@ amount is ever a float.
 
 ## 3. How would you ensure the accuracy and consistency of the profit data?
 
-Six things, all of them in the code:
+Seven things, all of them in the code:
 
 **`DECIMAL` in the schema, `BigDecimal` in Java.** `Income.amount` and every
 other money field is `DECIMAL(12,2)` mapped to `BigDecimal`. A `double` cannot
@@ -82,9 +82,12 @@ database itself (`ProfitCalculationService.calculate`), so two people asking for
 the same shipment necessarily get the same answer. If the endpoint accepted
 income and cost figures, the number would only be as accurate as whoever typed it.
 
-**One transaction.** `calculate` is `@Transactional`: the reads that produce the
-totals and the write that stores the result are one unit. A calculation cannot be
-stored against amounts that changed halfway through.
+**One transaction, with the shipment locked.** `calculate` is `@Transactional`,
+and it starts by reading the shipment with `findByReferenceForUpdate`
+(`SELECT ... FOR UPDATE`). The reads that produce the totals and the write that
+stores the result are one unit, and two simultaneous calculations of the same
+shipment run one after the other instead of interleaving. Calculations of
+different shipments are not held up.
 
 **Sum in the database.** `IncomeRepository.sumAmountByShipmentId` uses
 `SUM` with `COALESCE(..., 0)` rather than loading rows and adding them in Java.
@@ -103,6 +106,13 @@ When someone else corrected the line first, the statement changes no row and the
 caller gets `409 Conflict` instead of silently replacing a newer amount. The check
 and the write are a single statement, so there is no gap between them to race
 in; `AmountCorrectionRepositoryTest` runs it against the database.
+
+**No duplicate results.** When the totals equal those of the shipment's latest
+calculation, that calculation is returned (`200`, `"created": false`) instead of
+storing an identical row, so the history records changes rather than clicks. The
+comparison uses `BigDecimal.compareTo`, because `equals` would treat 100.0 and
+100.00 as different amounts. `ProfitCalculationDeduplicationTest` runs it against
+the database.
 
 And the calculation itself is covered by tests that assert the arithmetic, not
 just that a value came back — profit, loss, zero, and the unknown-shipment case
@@ -157,16 +167,22 @@ It lives in `ProfitCalculationService.calculate`, and follows the use case step 
 step:
 
 ```java
-Shipment shipment = shipmentRepository.findByReference(reference)
-        .orElseThrow(() -> new ShipmentNotFoundException(reference));   // step 1
+Shipment shipment = shipmentRepository.findByReferenceForUpdate(reference)  // step 1, row locked
+        .orElseThrow(() -> new ShipmentNotFoundException(reference));
 
 BigDecimal totalIncome = incomeRepository.sumAmountByShipmentId(shipment.getId()); // step 2
 BigDecimal totalCosts  = costRepository.sumAmountByShipmentId(shipment.getId());   // step 3
 
 BigDecimal profitOrLoss = totalIncome.subtract(totalCosts);             // step 4
 
-calculationRepository.save(...);                                        // step 5
-return mapper.toResponseDTO(saved);                                     // step 6
+ProfitCalculation latest = calculationRepository
+        .findFirstByShipmentIdOrderByIdDesc(shipment.getId()).orElse(null);
+boolean unchanged = latest != null
+        && latest.getTotalIncome().compareTo(totalIncome) == 0
+        && latest.getTotalCosts().compareTo(totalCosts) == 0;
+
+ProfitCalculation result = unchanged ? latest : calculationRepository.save(...); // step 5
+response.setCreated(!unchanged);                                        // step 6: 201 or 200
 ```
 
 **Why in the service layer.** The controller's job is HTTP and the repository's is
@@ -184,8 +200,13 @@ and it is what makes the result reproducible. It also means there is no
 `if (costs > income)` branch anywhere: a loss is simply a negative result of one
 subtraction, so profit and loss cannot drift apart in behaviour.
 
-**Why a new row per calculation.** `save` always inserts. Re-evaluating a shipment
-after a late cost arrives does not overwrite the figure someone already acted on.
+**Why a new row when something changed, and only then.** A calculation is never
+updated in place: re-evaluating a shipment after a late cost arrives adds a row,
+so the figure someone already acted on is still there. But when the totals are the
+same as the latest calculation, a new row would repeat it without adding
+information, so the existing one is returned instead. The shipment row is locked
+for the length of the calculation, so two simultaneous requests cannot both
+decide the result is new and store it twice.
 
 **SOLID, concretely.** Single responsibility: the service calculates, the mapper
 translates, the repositories fetch. Dependency inversion: the service depends on

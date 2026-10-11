@@ -2,6 +2,17 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# The Angular front end is its own repository (github.com/JottaGomes/logistic).
+# Point FRONTEND_DIR at its clone; by default it is expected next to this one.
+FRONTEND_DIR="${FRONTEND_DIR:-$SCRIPT_DIR/../logistics-frontend}"
+
+require_frontend() {
+  if [ ! -f "$FRONTEND_DIR/package.json" ]; then
+    echo "Front end not found at $FRONTEND_DIR. Clone github.com/JottaGomes/logistic there, or set FRONTEND_DIR." >&2
+    exit 1
+  fi
+}
 REGISTRY="192.168.1.3:5005"
 SERVER="adriano@192.168.1.3"
 
@@ -40,10 +51,11 @@ deploy_backend() {
 
 deploy_frontend() {
   echo "Building frontend ..."
-  cd "$SCRIPT_DIR/frontend" && npm install && npm run build
+  require_frontend
+  cd "$FRONTEND_DIR" && npm install && npm run build
 
   echo "Building and pushing frontend image ..."
-  sudo docker buildx build --platform linux/amd64 -t "$REGISTRY/dachser-frontend:latest" "$SCRIPT_DIR/frontend"
+  sudo docker buildx build --platform linux/amd64 -t "$REGISTRY/dachser-frontend:latest" "$FRONTEND_DIR"
   sudo docker push "$REGISTRY/dachser-frontend:latest"
 
   echo "Deploying frontend on server ..."
