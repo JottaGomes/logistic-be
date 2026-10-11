@@ -100,6 +100,10 @@ class ChatServiceTest {
         assertThat(messages).hasSize(3);
         assertThat(messages.get(0).path("role").asText()).isEqualTo("system");
         assertThat(messages.get(0).path("content").asText()).contains("Today is 2026-10-11");
+        assertThat(messages.get(0).path("content").asText())
+                .as("the prompt keeps the assistant to the company's shipment data")
+                .contains("Only answer questions about this company's shipments")
+                .contains("do not answer the question");
         assertThat(messages.get(1).path("content").asText()).isEqualTo("second");
         assertThat(messages.get(2).path("content").asText()).isEqualTo("third");
     }

@@ -33,6 +33,10 @@ public class ChatService {
             questions about shipments, their incomes, their costs and their profit or loss.
 
             Rules:
+            - Only answer questions about this company's shipments, incomes, costs and
+              profit or loss. For anything else (general knowledge, other companies,
+              writing or coding help, opinions) reply that you can only help with
+              shipments, incomes, costs and profit, and do not answer the question.
             - Use the tools for every figure. Never invent a shipment, an amount or a result.
               If the tools do not return it, say you could not find it.
             - Profit or loss = total income - total costs. Negative means a loss.

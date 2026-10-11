@@ -178,7 +178,12 @@ an existing service method (`chat/ShipmentChatTools`):
 | `get_profit_summary` | shipments, calculated, at a loss, and the summed result |
 
 So it cannot change data, cannot reach the `users` table, and cannot ask for an
-unbounded result. Each question runs a tool-calling loop (`chat/ChatService`):
+unbounded result. The system prompt (`ChatService.SYSTEM_PROMPT`) also tells
+the model to answer only questions about the company's shipments, incomes, costs
+and profit, to decline anything else, and to take every figure from the tools.
+That part is an instruction a model can occasionally ignore; the tool boundary
+above is what guarantees it never sees data the tools do not expose. Each
+question runs a tool-calling loop (`chat/ChatService`):
 the model asks for tools, the backend runs them and sends the results back, at
 most `app.chat.max-tool-rounds` times. Answers list the tools they came from.
 
