@@ -1,5 +1,12 @@
 spring:
 
+  # Machine-local settings kept out of git (.gitignore) and out of the Docker image:
+  # secrets such as the Groq API key go in application-local.yml at the project
+  # root, copied from application-local.yml.example. Values there override this
+  # file. Optional, so the application starts the same without it.
+  config:
+    import: optional:file:./application-local.yml
+
   # embedded in-memory database, so the project builds and runs with no external
   # dependency; see application-mariadb.yml for the persistent alternative
   datasource:

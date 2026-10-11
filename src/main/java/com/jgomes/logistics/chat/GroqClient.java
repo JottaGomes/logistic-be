@@ -52,7 +52,7 @@ public class GroqClient {
     public JsonNode complete(ArrayNode messages, ArrayNode tools) {
 
         if (!properties.isConfigured()) {
-            throw new ChatUnavailableException("The chat assistant is not configured. Set GROQ_API_KEY on the backend.");
+            throw new ChatUnavailableException("The chat assistant is not configured. Set GROQ_API_KEY, or app.chat.api-key in application-local.yml, on the backend.");
         }
 
         ObjectNode body = mapper.createObjectNode();
@@ -95,7 +95,7 @@ public class GroqClient {
     private String describe(HttpStatusCodeException ex) {
 
         if (ex.getStatusCode().value() == HttpStatus.UNAUTHORIZED.value()) {
-            return "The language model provider rejected the API key. Check GROQ_API_KEY.";
+            return "The language model provider rejected the API key. Check GROQ_API_KEY or app.chat.api-key in application-local.yml.";
         }
 
         if (ex.getStatusCode().value() == HttpStatus.TOO_MANY_REQUESTS.value()) {

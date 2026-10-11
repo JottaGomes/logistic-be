@@ -187,11 +187,14 @@ chat state, accepts only `user` and `assistant` turns (a client cannot inject
 instructions as `system`) and sends the model only the last
 `app.chat.max-history` of them.
 
-Set the key as an environment variable, never in `application.yml`:
+Supply the key in one of two ways, never in `application.yml` (it is committed):
 
-```bash
-GROQ_API_KEY=gsk_... mvn spring-boot:run
-```
+- an environment variable: `GROQ_API_KEY=gsk_... mvn spring-boot:run`, or the
+  Environment variables field of the IDE run configuration;
+- a local file: copy `application-local.yml.example` to `application-local.yml`
+  at the project root and fill in `app.chat.api-key`. That file is in
+  `.gitignore`, is not copied into the Docker image, and is loaded through
+  `spring.config.import` when it exists.
 
 Without it everything else works and `/api/chat` answers `503` saying the key is
 missing. Questions and the data the tools return are sent to Groq, so customer
@@ -379,7 +382,7 @@ confirm it.
 | Variable | Default | Purpose |
 |---|---|---|
 | `JWT_SECRET` | none: a random key per start, so tokens do not survive a restart | key used to sign tokens, at least 32 characters |
-| `GROQ_API_KEY` | none: `/api/chat` answers 503 | Groq API key for the shipment assistant |
+| `GROQ_API_KEY` | none: `/api/chat` answers 503 | Groq API key for the shipment assistant; or `app.chat.api-key` in `application-local.yml` |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:4200,https://*.vercel.app` | comma-separated front-end origins allowed to call the API; wildcards such as `https://*.vercel.app` work |
 | `APP_SECURITY_ENABLE_LOGIN` | `true` | `false` bypasses authentication |
 | `DB_HOST` / `DB_PORT` / `DB_NAME` | `localhost` / `3306` / `logisticsdb` | MariaDB profile only |

@@ -35,3 +35,6 @@ Thumbs.db
 
 # H2 file-mode database
 /data/
+
+# Machine-local settings and secrets, loaded by spring.config.import
+application-local.yml

@@ -1,0 +1,6 @@
+# Copy to application-local.yml (same folder) and fill in. That file is ignored by
+# git and not copied into the Docker image, so real secrets are safe in it.
+app:
+  chat:
+    # Groq API key for the shipment assistant, from https://console.groq.com/keys
+    api-key: gsk_replace_with_your_key
