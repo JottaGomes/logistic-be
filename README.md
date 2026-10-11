@@ -154,6 +154,42 @@ use case sums together. Indexes on all foreign keys and on `calculated_at`.
 
 Full reasoning in **[DATABASE_QUESTIONS.md](DATABASE_QUESTIONS.md)**.
 
+## Shipment assistant
+
+`POST /api/chat` answers questions about shipments in plain language — "which
+shipments lost the most?", "why is SHP-2026-0004 at a loss?" — using a model on
+Groq's OpenAI-compatible API.
+
+The model never writes SQL. It can only call four read-only tools, each backed by
+an existing service method (`chat/ShipmentChatTools`):
+
+| Tool | Reads |
+|---|---|
+| `search_shipments` | shipments by reference or customer, at most 20 |
+| `get_shipment` | one shipment's income and cost lines and current totals |
+| `list_profit_calculations` | stored calculations, searchable and sortable, at most 20 |
+| `get_profit_summary` | shipments, calculated, at a loss, and the summed result |
+
+So it cannot change data, cannot reach the `users` table, and cannot ask for an
+unbounded result. Each question runs a tool-calling loop (`chat/ChatService`):
+the model asks for tools, the backend runs them and sends the results back, at
+most `app.chat.max-tool-rounds` times. Answers list the tools they came from.
+
+The browser sends the conversation with every question; the backend keeps no
+chat state, accepts only `user` and `assistant` turns (a client cannot inject
+instructions as `system`) and sends the model only the last
+`app.chat.max-history` of them.
+
+Set the key as an environment variable, never in `application.yml`:
+
+```bash
+GROQ_API_KEY=gsk_... mvn spring-boot:run
+```
+
+Without it everything else works and `/api/chat` answers `503` saying the key is
+missing. Questions and the data the tools return are sent to Groq, so customer
+names and amounts leave the system when the assistant is used.
+
 ## Structure
 
 ```
@@ -166,6 +202,7 @@ service/      ProfitCalculationService - the use case
 controller/   ProfitCalculationController - /api/profit-calculations, the use case
               ShipmentAdministrationController - /api/shipments, search and
               payment and cost administration
+chat/         shipment assistant: Groq client, read-only tools, tool-calling loop
 security/     JWT filter, token utility, security configuration
 exception/    GlobalExceptionHandler and ShipmentNotFoundException
 seed/         BulkDataSeeder - generated data for load testing, off by default
@@ -177,12 +214,14 @@ seed/         BulkDataSeeder - generated data for load testing, off by default
 mvn test
 ```
 
-70 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
+84 tests, covering the arithmetic (profit, loss, zero), the unknown-shipment path,
 recording amounts and rejecting bad ones, correcting them under optimistic locking
 (including the conditional UPDATE run against the database by
 `AmountCorrectionRepositoryTest`), duplicate references, pagination and
 sorting and its size cap, the security layer and the error handler, including the
-retryable data retrieval error of alternative flow I.
+retryable data retrieval error of alternative flow I, and the shipment assistant:
+its tool-calling loop, the bounds on every tool, the HTTP exchange with the
+provider against a mock server, and the summary query against the database.
 
 ## Testing the endpoints
 
@@ -332,6 +371,7 @@ confirm it.
 | Variable | Default | Purpose |
 |---|---|---|
 | `JWT_SECRET` | none: a random key per start, so tokens do not survive a restart | key used to sign tokens, at least 32 characters |
+| `GROQ_API_KEY` | none: `/api/chat` answers 503 | Groq API key for the shipment assistant |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:4200,https://*.vercel.app` | comma-separated front-end origins allowed to call the API; wildcards such as `https://*.vercel.app` work |
 | `APP_SECURITY_ENABLE_LOGIN` | `true` | `false` bypasses authentication |
 | `DB_HOST` / `DB_PORT` / `DB_NAME` | `localhost` / `3306` / `logisticsdb` | MariaDB profile only |
@@ -348,4 +388,4 @@ confirm it.
 | Entities / Repositories / DTO / Mapper / Service / Controller | `src/main/java/...`; one controller for the use case, a second for administration |
 | Endpoint collection | `postman/`, plus `http/` |
 | Database question answers | [DATABASE_QUESTIONS.md](DATABASE_QUESTIONS.md) |
-| Unit tests (optional) | `mvn test`, 70 tests |
+| Unit tests (optional) | `mvn test`, 84 tests |

@@ -1,0 +1,11 @@
+### Asks the shipment assistant a question. Needs GROQ_API_KEY set on the backend;
+### without it the answer is 503 with a message saying so.
+### The backend keeps no conversation: send earlier turns in "messages" to follow up.
+POST http://localhost:8080/api/chat
+Content-Type: application/json
+
+{
+  "messages": [
+    { "role": "user", "content": "Which 3 shipments lost the most, and why?" }
+  ]
+}

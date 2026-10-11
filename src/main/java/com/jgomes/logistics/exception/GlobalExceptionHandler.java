@@ -62,6 +62,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(message));
     }
 
+    @ExceptionHandler(ChatUnavailableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleChatUnavailable(ChatUnavailableException ex) {
+        log.warn("chat_unavailable message={}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(ApiResponse.error(ex.getMessage()));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException ex) {
         return ResponseEntity.badRequest().body(ApiResponse.error(ex.getMessage()));

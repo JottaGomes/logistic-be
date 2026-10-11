@@ -40,6 +40,13 @@ app:
     # any other host lists it in CORS_ALLOWED_ORIGINS, which replaces this list.
     cors-allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,https://*.vercel.app}
 
+  chat:
+    # Groq API key for the shipment chat assistant (/api/chat). Supply it through the
+    # GROQ_API_KEY environment variable rather than writing it here: this file is
+    # committed. Without a key, only /api/chat is unavailable (503).
+    api-key: ${GROQ_API_KEY:}
+    model: openai/gpt-oss-120b
+
   jwt:
     # Signing key, at least 32 characters. Left empty, a random key is generated at
     # startup and every issued token stops being valid when the application restarts.

@@ -18,4 +18,5 @@ Recording data first, then evaluating it:
 | `calculate-not-found.http` | alternative flow I — unknown shipment, 404 |
 | `calculate-validation-error.http` | blank reference, 400 |
 | `list-calculations.http` | stored history, paged |
+| `chat.http` | the shipment assistant; needs `GROQ_API_KEY` |
 | `login.http` | obtain a JWT when authentication is on |

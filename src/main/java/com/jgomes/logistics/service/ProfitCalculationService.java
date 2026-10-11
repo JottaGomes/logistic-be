@@ -2,6 +2,7 @@ package com.jgomes.logistics.service;
 
 import com.jgomes.logistics.dto.CalculateProfitRequestDTO;
 import com.jgomes.logistics.dto.ProfitCalculationResponseDTO;
+import com.jgomes.logistics.dto.ProfitSummaryDTO;
 import com.jgomes.logistics.entity.Cost;
 import com.jgomes.logistics.entity.Income;
 import com.jgomes.logistics.entity.ProfitCalculation;
@@ -104,6 +105,19 @@ public class ProfitCalculationService {
         String pattern = "%" + search.trim().toLowerCase() + "%";
 
         return calculationRepository.findByShipmentMatching(pattern, pageable).map(mapper::toResponseDTO);
+    }
+
+    /** Portfolio-wide figures over the latest calculation of each shipment. */
+    @Transactional(readOnly = true)
+    public ProfitSummaryDTO summarize() {
+
+        Object[] row = calculationRepository.summarizeLatest().get(0);
+
+        return new ProfitSummaryDTO(
+                shipmentRepository.count(),
+                ((Number) row[0]).longValue(),
+                ((Number) row[1]).longValue(),
+                new BigDecimal(row[2].toString()));
     }
 
     /** Falls back to "system" when authentication is switched off. */
